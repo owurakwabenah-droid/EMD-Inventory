@@ -41,6 +41,8 @@ tailwind.config = {
             animation: {
                 'fade-in': 'fadeIn 0.5s ease-out forwards',
                 'slide-up': 'slideUp 0.4s ease-out forwards',
+                'slide-right': 'slideRight 0.5s ease-out forwards',
+                'slide-left': 'slideLeft 0.5s ease-out forwards',
                 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                 'bounce-slow': 'bounce 2s infinite',
                 'float': 'float 3s ease-in-out infinite',
@@ -53,6 +55,14 @@ tailwind.config = {
                 slideUp: {
                     '0%': { opacity: '0', transform: 'translateY(20px)' },
                     '100%': { opacity: '1', transform: 'translateY(0)' },
+                },
+                slideRight: {
+                    '0%': { opacity: '0', transform: 'translateX(100px)' },
+                    '100%': { opacity: '1', transform: 'translateX(0)' },
+                },
+                slideLeft: {
+                    '0%': { opacity: '0', transform: 'translateX(-100px)' },
+                    '100%': { opacity: '1', transform: 'translateX(0)' },
                 },
                 float: {
                     '0%, 100%': { transform: 'translateY(0px)' },
@@ -304,6 +314,16 @@ input:checked + .toggle-slider:before {
     background: #fef2f2;
 }
 
+.user-tab {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideRight 0.5s ease-out forwards;
+}
+
+.user-tab.selected {
+    border-color: var(--tab-border, #0ea5e9);
+    background-color: var(--tab-bg, #f0f9ff);
+}
+
 /* Focus styles for accessibility */
 button:focus, input:focus, select:focus {
     outline: 2px solid #0ea5e9;
@@ -356,6 +376,34 @@ button:focus, input:focus, select:focus {
 .toast.success { border-left: 4px solid #10b981; }
 .toast.error { border-left: 4px solid #ef4444; }
 .toast.warning { border-left: 4px solid #f59e0b; }
+
+/* Dashboard Card Styles */
+.dashboard-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+}
+
+/* Product Card Styles */
+.product-stat-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(241,245,249,0.95) 100%);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+}
+
+.product-stat-card:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
 </style>
 </head>
 <body class="text-slate-800 antialiased h-screen flex overflow-hidden selection:bg-brand-100 selection:text-brand-900">
@@ -368,7 +416,7 @@ button:focus, input:focus, select:focus {
         <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-accent-500/20 rounded-full blur-3xl animate-float" style="animation-delay: 1.5s;"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-400/10 rounded-full blur-3xl animate-pulse-slow"></div>
     </div>
-    <div class="login-card relative z-10 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+    <div class="login-card relative z-10 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-slide-up">
         <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-accent-600 px-8 py-12 text-center relative overflow-hidden">
             <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
             <div class="relative">
@@ -382,21 +430,8 @@ button:focus, input:focus, select:focus {
         <div class="p-8">
             <div class="mb-6">
                 <label class="block text-xs font-bold text-slate-500 mb-3 uppercase tracking-wide">Select Admin User</label>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="selectUser('boison')" id="user-boison" class="group p-5 rounded-2xl border-2 border-slate-200 hover:border-brand-500 hover:bg-brand-50 transition-all duration-300" aria-label="Select Boison as admin">
-                        <div class="w-14 h-14 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl mx-auto mb-3 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-crown text-2xl text-white"></i>
-                        </div>
-                        <p class="font-bold text-slate-800 text-center">Boison</p>
-                        <p class="permission-badge full mt-2 w-full text-center">Main Admin</p>
-                    </button>
-                    <button onclick="selectUser('afoga')" id="user-afoga" class="group p-5 rounded-2xl border-2 border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-all duration-300" aria-label="Select Afoga as admin">
-                        <div class="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl mx-auto mb-3 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-user-shield text-2xl text-white"></i>
-                        </div>
-                        <p class="font-bold text-slate-800 text-center">Afoga</p>
-                        <p class="permission-badge limited mt-2 w-full text-center">Admin</p>
-                    </button>
+                <div id="user-tabs-container" class="flex gap-3 overflow-x-auto pb-2">
+                    <!-- User tabs will be dynamically generated here -->
                 </div>
             </div>
             <div id="login-form" class="hidden space-y-4">
@@ -427,7 +462,7 @@ button:focus, input:focus, select:focus {
         <div class="px-8 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-t border-slate-200 text-center">
             <p class="text-xs text-slate-400 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-shield-halved"></i>
-                <span>Secure Login</span>
+                <span>Secure Login • Auto-logout after 30 minutes of inactivity</span>
             </p>
         </div>
     </div>
@@ -620,8 +655,8 @@ button:focus, input:focus, select:focus {
         
         <!-- DASHBOARD VIEW -->
         <div id="view-dashboard" class="space-y-8 animate-fade-in">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute right-0 top-0 w-32 h-32 bg-brand-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                     <div class="relative z-10">
                         <div class="flex justify-between items-start mb-4">
@@ -636,7 +671,7 @@ button:focus, input:focus, select:focus {
                         </div>
                     </div>
                 </div>
-                <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute right-0 top-0 w-32 h-32 bg-purple-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                     <div class="relative z-10">
                         <div class="flex justify-between items-start mb-4">
@@ -650,7 +685,7 @@ button:focus, input:focus, select:focus {
                         </div>
                     </div>
                 </div>
-                <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute right-0 top-0 w-32 h-32 bg-orange-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                     <div class="relative z-10">
                         <div class="flex justify-between items-start mb-4">
@@ -664,7 +699,7 @@ button:focus, input:focus, select:focus {
                         </div>
                     </div>
                 </div>
-                <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute right-0 top-0 w-32 h-32 bg-pink-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                     <div class="relative z-10">
                         <div class="flex justify-between items-start mb-4">
@@ -679,16 +714,32 @@ button:focus, input:focus, select:focus {
                         </div>
                     </div>
                 </div>
-                <div class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute right-0 top-0 w-32 h-32 bg-green-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                     <div class="relative z-10">
                         <div class="flex justify-between items-start mb-4">
                             <div>
                                 <p class="text-sm font-medium text-slate-500">Total Products</p>
                                 <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mt-1" id="dash-total-products">0</h3>
+                                <p class="text-xs text-slate-400 mt-1">Product Types</p>
                             </div>
                             <div class="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center text-white shadow-lg shadow-green-500/30">
                                 <i class="fa-solid fa-cubes text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-cyan-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Total Quantity</p>
+                                <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mt-1" id="dash-total-quantity">0</h3>
+                                <p class="text-xs text-slate-400 mt-1">Units in Stock</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-cyan-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+                                <i class="fa-solid fa-layer-group text-xl"></i>
                             </div>
                         </div>
                     </div>
@@ -1111,6 +1162,80 @@ button:focus, input:focus, select:focus {
                 <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                     <i class="fa-solid fa-box text-brand-500"></i> Product Manager
                 </h3>
+                
+                <!-- Product Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="product-stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium uppercase">Total Products</p>
+                                <p class="text-2xl font-bold text-slate-800 mt-1" id="pm-total-products">0</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                                <i class="fa-solid fa-cubes text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium uppercase">Total Quantity</p>
+                                <p class="text-2xl font-bold text-slate-800 mt-1" id="pm-total-quantity">0</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-cyan-100 flex items-center justify-center">
+                                <i class="fa-solid fa-layer-group text-cyan-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium uppercase">Low Stock</p>
+                                <p class="text-2xl font-bold text-slate-800 mt-1" id="pm-low-stock">0</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                                <i class="fa-solid fa-triangle-exclamation text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium uppercase">Avg. Price</p>
+                                <p class="text-2xl font-bold text-slate-800 mt-1" id="pm-avg-price">₵0</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                                <i class="fa-solid fa-tag text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filter Section -->
+                <div class="bg-slate-50 rounded-xl p-4 mb-6">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Filter by Price Range</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="price-filter-min" placeholder="Min Price" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-500 text-sm">
+                                <span class="text-slate-400">-</span>
+                                <input type="number" id="price-filter-max" placeholder="Max Price" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-500 text-sm">
+                                <button onclick="applyPriceFilter()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition">
+                                    <i class="fa-solid fa-filter mr-1"></i> Filter
+                                </button>
+                                <button onclick="clearPriceFilter()" class="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-300 transition">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <button onclick="openAddProductModal()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Add Product
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse" role="table">
                         <thead>
@@ -1137,22 +1262,34 @@ button:focus, input:focus, select:focus {
                         <i class="fa-solid fa-database text-3xl text-brand-600"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-slate-800 mb-2">Backup & Restore</h3>
-                    <p class="text-slate-500 mb-6">Manage your order data</p>
+                    <p class="text-slate-500 mb-6">Manage your order data - Export all data or restore from backup</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
                             <i class="fa-solid fa-download text-3xl text-brand-500 mb-3"></i>
                             <h4 class="font-bold text-slate-800 mb-2">Export Data</h4>
-                            <button onclick="exportData()" class="w-full py-3 bg-brand-500 text-white rounded-xl font-bold mb-3">Download Backup</button>
-                            <button onclick="exportAndDelete()" class="w-full py-3 bg-red-500 text-white rounded-xl font-bold">Download & Delete All</button>
+                            <p class="text-xs text-slate-500 mb-4">Download complete system backup including orders, inventory, users, and all data</p>
+                            <button onclick="exportData()" class="w-full py-3 bg-brand-500 text-white rounded-xl font-bold mb-3 hover:bg-brand-600 transition">
+                                <i class="fa-solid fa-download mr-2"></i> Download Backup
+                            </button>
+                            <button onclick="exportAndDelete()" class="w-full py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition">
+                                <i class="fa-solid fa-trash mr-2"></i> Download & Delete All
+                            </button>
                         </div>
                         <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
                             <i class="fa-solid fa-upload text-3xl text-accent-500 mb-3"></i>
                             <h4 class="font-bold text-slate-800 mb-2">Import Data</h4>
-                            <label class="w-full py-3 bg-accent-500 text-white rounded-xl font-bold cursor-pointer block">
+                            <p class="text-xs text-slate-500 mb-4">Restore complete system from backup file. This will replace all existing data.</p>
+                            <label class="w-full py-3 bg-accent-500 text-white rounded-xl font-bold cursor-pointer block hover:bg-accent-600 transition">
                                 <i class="fa-solid fa-upload mr-2"></i> Upload Backup
                                 <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)">
                             </label>
                         </div>
+                    </div>
+                    <div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                        <p class="text-sm text-amber-700 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Warning: Importing data will replace ALL existing data. Make sure to backup first!</span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -1440,6 +1577,7 @@ button:focus, input:focus, select:focus {
 const EXCHANGE_RATE = 10;
 const LOW_STOCK_THRESHOLD = 5;
 const MAX_ACTIVITY_LOG = 100;
+const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 // ============================================
 // STATE VARIABLES
@@ -1453,6 +1591,9 @@ let selectedReportRecipient = null;
 let editingOrderItem = null;
 let pendingUser = null;
 let afogaRestockAccess = {};
+let idleTimer = null;
+let priceFilterMin = null;
+let priceFilterMax = null;
 
 // ============================================
 // USER MANAGEMENT DATA
@@ -1544,6 +1685,8 @@ function loadUserData() {
         Object.keys(parsed).forEach(key => {
             if (users[key]) {
                 users[key] = { ...users[key], ...parsed[key] };
+            } else {
+                users[key] = parsed[key];
             }
         });
     }
@@ -1635,16 +1778,82 @@ function formatDate(isoString) {
 }
 
 // ============================================
+// IDLE TIMEOUT FUNCTIONS
+// ============================================
+function resetIdleTimer() {
+    if (idleTimer) {
+        clearTimeout(idleTimer);
+    }
+    if (currentUser) {
+        idleTimer = setTimeout(() => {
+            logActivity('Auto Logout', `${currentUser} logged out due to inactivity`);
+            logout();
+        }, IDLE_TIMEOUT);
+    }
+}
+
+function initIdleTimer() {
+    ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, resetIdleTimer, true);
+    });
+}
+
+// ============================================
 // LOGIN FUNCTIONS
 // ============================================
+function renderUserTabs() {
+    const container = document.getElementById('user-tabs-container');
+    container.innerHTML = '';
+    
+    const userKeys = Object.keys(users);
+    userKeys.forEach((username, index) => {
+        const user = users[username];
+        const roleClass = user.role === 'main' ? 'from-brand-400 to-brand-600' : 'from-amber-400 to-amber-600';
+        const iconClass = user.role === 'main' ? 'fa-crown' : 'fa-user-shield';
+        const badgeClass = user.role === 'main' ? 'full' : 'limited';
+        const badgeText = user.role === 'main' ? 'Main Admin' : 'Admin';
+        const borderColor = user.role === 'main' ? 'border-brand-500 bg-brand-50' : 'border-amber-500 bg-amber-50';
+        const tabBorder = user.role === 'main' ? '#0ea5e9' : '#f59e0b';
+        const tabBg = user.role === 'main' ? '#f0f9ff' : '#fef3c7';
+        
+        const button = document.createElement('button');
+        button.className = 'user-tab flex-1 min-w-[140px] p-5 rounded-2xl border-2 border-slate-200 hover:border-opacity-50 transition-all duration-300';
+        button.style.animationDelay = `${index * 0.1}s`;
+        button.style.setProperty('--tab-border', tabBorder);
+        button.style.setProperty('--tab-bg', tabBg);
+        button.onclick = () => selectUser(username);
+        button.id = `user-${username}`;
+        button.innerHTML = `
+            <div class="w-14 h-14 bg-gradient-to-br ${roleClass} rounded-xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-transform">
+                <i class="fa-solid ${iconClass} text-2xl text-white"></i>
+            </div>
+            <p class="font-bold text-slate-800 text-center">${username.charAt(0).toUpperCase() + username.slice(1)}</p>
+            <p class="permission-badge ${badgeClass} mt-2 w-full text-center">${badgeText}</p>
+        `;
+        container.appendChild(button);
+    });
+}
+
 function selectUser(username) {
-    document.getElementById('user-boison').classList.remove('border-brand-500', 'bg-brand-50');
-    document.getElementById('user-afoga').classList.remove('border-amber-500', 'bg-amber-50');
-    if (username === 'boison') {
-        document.getElementById('user-boison').classList.add('border-brand-500', 'bg-brand-50');
-    } else {
-        document.getElementById('user-afoga').classList.add('border-amber-500', 'bg-amber-50');
+    Object.keys(users).forEach(u => {
+        const btn = document.getElementById(`user-${u}`);
+        if (btn) {
+            btn.classList.remove('selected');
+            btn.style.borderColor = '#e2e8f0';
+            btn.style.backgroundColor = 'transparent';
+        }
+    });
+    
+    const user = users[username];
+    const selectedBtn = document.getElementById(`user-${username}`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('selected');
+        const tabBorder = user.role === 'main' ? '#0ea5e9' : '#f59e0b';
+        const tabBg = user.role === 'main' ? '#f0f9ff' : '#fef3c7';
+        selectedBtn.style.borderColor = tabBorder;
+        selectedBtn.style.backgroundColor = tabBg;
     }
+    
     document.getElementById('login-form').classList.remove('hidden');
     document.getElementById('login-username').value = username;
     pendingUser = username;
@@ -1653,8 +1862,14 @@ function selectUser(username) {
 
 function resetLogin() {
     document.getElementById('login-form').classList.add('hidden');
-    document.getElementById('user-boison').classList.remove('border-brand-500', 'bg-brand-50');
-    document.getElementById('user-afoga').classList.remove('border-amber-500', 'bg-amber-50');
+    Object.keys(users).forEach(u => {
+        const btn = document.getElementById(`user-${u}`);
+        if (btn) {
+            btn.classList.remove('selected');
+            btn.style.borderColor = '#e2e8f0';
+            btn.style.backgroundColor = 'transparent';
+        }
+    });
     document.getElementById('login-password').value = '';
     pendingUser = null;
 }
@@ -1678,7 +1893,7 @@ function login() {
         showActionModal('error', 'Error', 'Please enter password');
         return;
     }
-    if (password !== users[username].password) {
+    if (!users[username] || password !== users[username].password) {
         logActivity('Login Failed', `Failed login attempt for ${username}`);
         showActionModal('error', 'Login Failed', 'Incorrect password');
         return;
@@ -1690,6 +1905,9 @@ function login() {
         currentUser = username;
         currentRole = users[username].role;
         logActivity('Login', `${username} logged in successfully`);
+        
+        resetIdleTimer();
+        initIdleTimer();
         
         if (!users[username].passwordChanged) {
             document.getElementById('login-modal').classList.add('hidden');
@@ -1777,6 +1995,10 @@ function changePassword() {
 
 function logout() {
     logActivity('Logout', `${currentUser} logged out`);
+    if (idleTimer) {
+        clearTimeout(idleTimer);
+        idleTimer = null;
+    }
     currentUser = null;
     currentRole = null;
     document.getElementById('login-modal').classList.remove('hidden');
@@ -1815,7 +2037,8 @@ function initProductSelect() {
     select.innerHTML = '<option value="">Select a product...</option>';
     inventory.forEach(p => {
         const isDisabled = disabledProducts.includes(p.name);
-        if (isDisabled && currentRole !== 'main') return;
+        // Disabled products should NOT be visible during purchase
+        if (isDisabled) return;
         const option = document.createElement('option');
         option.value = p.name;
         option.dataset.price = p.price;
@@ -1897,6 +2120,8 @@ function switchView(viewName) {
         const sidebar = document.getElementById('sidebar');
         if (!sidebar.classList.contains('-translate-x-full')) toggleSidebar();
     }
+    
+    resetIdleTimer();
     
     if(viewName === 'dashboard') {
         updateDashboardStats();
@@ -2130,17 +2355,19 @@ function saveOrder() {
 function updateDashboardStats() {
     const totalOrders = allOrders.length;
     const totalRevenue = allOrders.reduce((sum, order) => sum + order.total, 0);
-    const totalProducts = allOrders.reduce((sum, order) => sum + order.items.reduce((s, i) => s + i.qty, 0), 0);
+    const totalProductsSold = allOrders.reduce((sum, order) => sum + order.items.reduce((s, i) => s + i.qty, 0), 0);
     const avgOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-    const totalInventoryProducts = inventory.reduce((sum, p) => sum + p.stock, 0);
+    const totalProductTypes = inventory.length;
+    const totalQuantity = inventory.reduce((sum, p) => sum + p.stock, 0);
     
     animateValue("dash-total-revenue", 0, totalRevenue, 1500, true);
     document.getElementById('dash-total-revenue-usd').textContent = `$${(totalRevenue / EXCHANGE_RATE).toFixed(2)}`;
     animateValue("dash-total-orders", 0, totalOrders, 1500);
-    animateValue("dash-products-sold", 0, totalProducts, 1500);
+    animateValue("dash-products-sold", 0, totalProductsSold, 1500);
     animateValue("dash-avg-order", 0, Math.floor(avgOrder), 1500, true);
     document.getElementById('dash-avg-order-usd').textContent = `$${(avgOrder / EXCHANGE_RATE).toFixed(2)}`;
-    animateValue("dash-total-products", 0, totalInventoryProducts, 1500);
+    animateValue("dash-total-products", 0, totalProductTypes, 1500);
+    animateValue("dash-total-quantity", 0, totalQuantity, 1500);
     
     const tbody = document.getElementById('recent-orders-body');
     tbody.innerHTML = '';
@@ -2190,11 +2417,11 @@ function renderCharts() {
     
     revenueChartInstance = new Chart(revenueCtx, {
         type: 'line',
-         {
+        data: {
             labels: last7Days,
             datasets: [{
                 label: 'Revenue (₵)',
-                 revenueData,
+                data: revenueData,
                 borderColor: '#0ea5e9',
                 backgroundColor: 'rgba(14, 165, 233, 0.1)',
                 fill: true,
@@ -2224,7 +2451,7 @@ function renderCharts() {
         data: {
             labels: topProducts.map(p => p[0]),
             datasets: [{
-                 topProducts.map(p => p[1]),
+                data: topProducts.map(p => p[1]),
                 backgroundColor: ['#0ea5e9', '#6366f1', '#f59e0b', '#10b981', '#ef4444']
             }]
         },
@@ -2685,6 +2912,7 @@ function saveNewUser() {
     logActivity('User Created', `${currentUser} created new user ${username}`);
     closeModal('create-user-modal');
     renderUserManagement();
+    renderUserTabs();
     showToast(`${username} has been created successfully`, 'success');
 }
 
@@ -2712,6 +2940,7 @@ function deleteUser(username) {
     saveUserData();
     logActivity('User Deleted', `${currentUser} deleted user ${username}`);
     renderUserManagement();
+    renderUserTabs();
     showToast(`${username} has been deleted`, 'success');
 }
 
@@ -2740,8 +2969,24 @@ function renderProductManagement() {
     const tbody = document.getElementById('product-management-body');
     tbody.innerHTML = '';
     
+    // Update stats cards
+    const totalProducts = inventory.length;
+    const totalQuantity = inventory.reduce((sum, p) => sum + p.stock, 0);
+    const lowStock = inventory.filter(p => p.stock <= LOW_STOCK_THRESHOLD).length;
+    const avgPrice = totalProducts > 0 ? Math.round(inventory.reduce((sum, p) => sum + p.price, 0) / totalProducts) : 0;
+    
+    document.getElementById('pm-total-products').textContent = totalProducts;
+    document.getElementById('pm-total-quantity').textContent = totalQuantity;
+    document.getElementById('pm-low-stock').textContent = lowStock;
+    document.getElementById('pm-avg-price').textContent = `₵${avgPrice.toLocaleString()}`;
+    
     inventory.forEach((product, index) => {
         const isDisabled = disabledProducts.includes(product.name);
+        
+        // Apply price filter
+        if (priceFilterMin !== null && product.price < priceFilterMin) return;
+        if (priceFilterMax !== null && product.price > priceFilterMax) return;
+        
         const tr = document.createElement('tr');
         tr.className = `border-b border-slate-100 hover:bg-slate-50 ${isDisabled ? 'product-disabled' : ''}`;
         const usd = (product.price / EXCHANGE_RATE).toFixed(2);
@@ -2759,6 +3004,25 @@ function renderProductManagement() {
         `;
         tbody.appendChild(tr);
     });
+}
+
+function applyPriceFilter() {
+    const minInput = document.getElementById('price-filter-min').value;
+    const maxInput = document.getElementById('price-filter-max').value;
+    
+    priceFilterMin = minInput ? parseInt(minInput) : null;
+    priceFilterMax = maxInput ? parseInt(maxInput) : null;
+    
+    renderProductManagement();
+    showToast('Filter applied', 'success');
+}
+
+function clearPriceFilter() {
+    document.getElementById('price-filter-min').value = '';
+    document.getElementById('price-filter-max').value = '';
+    priceFilterMin = null;
+    priceFilterMax = null;
+    renderProductManagement();
 }
 
 function openAddProductModal() {
@@ -3073,6 +3337,7 @@ function exportData() {
         customers,
         sentReports,
         disabledProducts,
+        afogaRestockAccess,
         exportDate: new Date().toISOString()
     };
     const dataStr = JSON.stringify(backupData, null, 2);
@@ -3087,18 +3352,45 @@ function exportData() {
 }
 
 function exportAndDelete() {
-    if(confirm('WARNING: This will delete all data after download. Continue?')) {
+    if(confirm('WARNING: This will download all data and then DELETE EVERYTHING from the dashboard. Continue?')) {
         exportData();
         setTimeout(() => {
             localStorage.removeItem('emdOrders');
             localStorage.removeItem('emdInventory');
+            localStorage.removeItem('emdUsers');
+            localStorage.removeItem('emdActivityLog');
+            localStorage.removeItem('emdCustomers');
+            localStorage.removeItem('emdReports');
+            localStorage.removeItem('emdDisabledProducts');
+            localStorage.removeItem('emdAfogaRestockAccess');
             allOrders = [];
             inventory = initializeInventory();
-            localStorage.setItem('emdInventory', JSON.stringify(inventory));
-            logActivity('Data Cleared', `${currentUser} exported and deleted all data`);
+            customers = [];
+            sentReports = [];
+            activityLog = [];
+            disabledProducts = [];
+            afogaRestockAccess = {};
+            // Reset users to default
+            users.boison.password = 'admin123';
+            users.boison.passwordChanged = false;
+            users.boison.avatar = null;
+            users.afoga.password = 'user123';
+            users.afoga.passwordChanged = false;
+            users.afoga.avatar = null;
+            // Remove additional users
+            Object.keys(users).forEach(key => {
+                if (key !== 'boison' && key !== 'afoga') {
+                    delete users[key];
+                }
+            });
+            saveUserData();
+            logActivity('Data Cleared', `${currentUser} exported and deleted ALL data`);
             updateDashboardStats();
             renderInventory();
-            showToast('Data deleted', 'success');
+            renderProductManagement();
+            renderUserManagement();
+            renderUserTabs();
+            showToast('All data deleted', 'success');
         }, 1000);
     }
 }
@@ -3111,18 +3403,19 @@ function importData(event) {
         try {
             const importedData = JSON.parse(e.target.result);
             if (!importedData.orders || !importedData.inventory) throw new Error('Invalid format');
-            if(confirm(`Import ${importedData.orders.length} orders?`)) {
+            if(confirm(`Import ${importedData.orders.length} orders? This will REPLACE ALL existing data!`)) {
                 allOrders = importedData.orders;
                 inventory = importedData.inventory;
                 if (importedData.users) {
                     Object.keys(importedData.users).forEach(key => {
-                        if (users[key]) users[key] = importedData.users[key];
+                        users[key] = importedData.users[key];
                     });
                 }
                 if (importedData.activityLog) activityLog = importedData.activityLog;
                 if (importedData.customers) customers = importedData.customers;
                 if (importedData.sentReports) sentReports = importedData.sentReports;
                 if (importedData.disabledProducts) disabledProducts = importedData.disabledProducts;
+                if (importedData.afogaRestockAccess) afogaRestockAccess = importedData.afogaRestockAccess;
                 localStorage.setItem('emdOrders', JSON.stringify(allOrders));
                 localStorage.setItem('emdInventory', JSON.stringify(inventory));
                 localStorage.setItem('emdUsers', JSON.stringify(users));
@@ -3130,18 +3423,23 @@ function importData(event) {
                 localStorage.setItem('emdCustomers', JSON.stringify(customers));
                 localStorage.setItem('emdReports', JSON.stringify(sentReports));
                 localStorage.setItem('emdDisabledProducts', JSON.stringify(disabledProducts));
-                logActivity('Data Imported', `${currentUser} imported system backup`);
+                localStorage.setItem('emdAfogaRestockAccess', JSON.stringify(afogaRestockAccess));
+                logActivity('Data Imported', `${currentUser} imported complete system backup`);
                 updateDashboardStats();
                 renderInventory();
                 initProductSelect();
                 renderCustomers();
-                showToast('Data restored', 'success');
+                renderUserManagement();
+                renderUserTabs();
+                renderProductManagement();
+                showToast('All data restored successfully', 'success');
             }
         } catch (error) {
             showActionModal('error', 'Import Failed', 'Invalid backup file');
         }
     };
     reader.readAsText(file);
+    event.target.value = '';
 }
 
 // ============================================
@@ -3270,15 +3568,15 @@ document.addEventListener('DOMContentLoaded', function() {
             strengthText.textContent = `Password strength: ${text}`;
         });
     }
+    
+    // Initialize user tabs on load
+    loadUserData();
+    renderUserTabs();
 });
-
-// ============================================
-// INITIALIZE APPLICATION
-// ============================================
-loadUserData();
 
 window.addEventListener('beforeunload', () => {
     if (stockAlertInterval) clearInterval(stockAlertInterval);
+    if (idleTimer) clearTimeout(idleTimer);
 });
 </script>
 </body>
