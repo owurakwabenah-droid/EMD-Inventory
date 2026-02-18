@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <script>
+        function loginUser() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const selection = document.getElementById('selection').value;
+
+            // Simple validation check
+            if (username === '' || password === '') {
+                alert('Please fill in both fields!');
+                return;
+            }
+
+            // Handle login based on selection
+            if (selection === 'boison') {
+                alert('Login successful with Boison!');
+                // Logic for Boison login goes here
+            } else if (selection === 'afoga') {
+                alert('Login successful with Afoga!');
+                // Logic for Afoga login goes here
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Login</h1>
+    <form onsubmit="event.preventDefault(); loginUser();">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+        
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        
+        <label for="selection">Select User Type:</label>
+        <select id="selection" name="selection" required>
+            <option value="boison">Boison</option>
+            <option value="afoga">Afoga</option>
+        </select><br><br>
+        
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
