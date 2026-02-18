@@ -3130,6 +3130,61 @@ loadUserData();
 window.addEventListener('beforeunload', () => {
   if (stockAlertInterval) clearInterval(stockAlertInterval);
 });
+
+
+// Fixed selectUser function - Place this in your script section
+function selectUser(username) {
+  try {
+    const boisonBtn = document.getElementById('user-boison');
+    const afogaBtn = document.getElementById('user-afoga');
+    const loginForm = document.getElementById('login-form');
+    const usernameInput = document.getElementById('login-username');
+    
+    if (!boisonBtn || !afogaBtn || !loginForm || !usernameInput) {
+      console.error('Login elements not found');
+      return;
+    }
+    
+    boisonBtn.classList.remove('border-brand-500', 'bg-brand-50');
+    afogaBtn.classList.remove('border-amber-500', 'bg-amber-50');
+    
+    if (username === 'boison') {
+      boisonBtn.classList.add('border-brand-500', 'bg-brand-50');
+    } else {
+      afogaBtn.classList.add('border-amber-500', 'bg-amber-50');
+    }
+    
+    loginForm.classList.remove('hidden');
+    usernameInput.value = username;
+    pendingUser = username;
+    
+    // Focus on password field for better UX
+    setTimeout(() => {
+      document.getElementById('login-password').focus();
+    }, 100);
+  } catch (error) {
+    console.error('Error in selectUser:', error);
+  }
+}
+
+// Fixed resetLogin function
+function resetLogin() {
+  try {
+    const loginForm = document.getElementById('login-form');
+    const passwordInput = document.getElementById('login-password');
+    const boisonBtn = document.getElementById('user-boison');
+    const afogaBtn = document.getElementById('user-afoga');
+    
+    if (loginForm) loginForm.classList.add('hidden');
+    if (boisonBtn) boisonBtn.classList.remove('border-brand-500', 'bg-brand-50');
+    if (afogaBtn) afogaBtn.classList.remove('border-amber-500', 'bg-amber-50');
+    if (passwordInput) passwordInput.value = '';
+    pendingUser = null;
+  } catch (error) {
+    console.error('Error in resetLogin:', error);
+  }
+}
+      
 </script>
 </body>
 </html>
