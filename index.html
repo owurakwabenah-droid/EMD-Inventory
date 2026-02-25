@@ -597,9 +597,11 @@ tailwind.config = {
                             </div>
                         </div>
                         <div class="mt-6 flex justify-end">
-                            <button onclick="addToOrderList()" class="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-brand-500/30 transform hover:-translate-y-0.5 transition-all flex items-center gap-2">
-                                <i class="fa-solid fa-plus"></i> Add Item
-                            </button>
+                            <div class="button-wrapper">
+                                <button onclick="addToOrderList()" class="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-brand-500/30 transform hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                                    <i class="fa-solid fa-cart-plus"></i> Add Item
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="glass-card rounded-2xl p-6 shadow-sm">
@@ -708,10 +710,12 @@ tailwind.config = {
                                 </div>
                             </div>
                         </div>
-                        <button onclick="saveOrder()" class="w-full mt-6 bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold shadow-xl transform hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 group">
-                            <span>Confirm & Save Order</span>
-                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                        </button>
+                        <div class="button-wrapper w-full">
+                            <button onclick="saveOrder()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold shadow-xl transform hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 group">
+                                <span><i class="fa-solid fa-check-circle"></i> Confirm & Save Order</span>
+                                <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -724,13 +728,17 @@ tailwind.config = {
                     <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-truck-fast text-brand-500"></i> Track Orders & Inventory
                     </h3>
-                    <div class="flex gap-2">
-                        <button onclick="openAddProductModal()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition flex items-center gap-2">
-                            <i class="fa-solid fa-plus"></i> Add New Product
-                        </button>
-                        <button onclick="checkLowStock(true)" class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600 transition flex items-center gap-2">
-                            <i class="fa-solid fa-bell"></i> Check Stock
-                        </button>
+                    <div class="button-group">
+                        <div class="button-wrapper">
+                            <button onclick="openAddProductModal()" class="px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+                                <i class="fa-solid fa-cube"></i> Add Product
+                            </button>
+                        </div>
+                        <div class="button-wrapper">
+                            <button onclick="checkLowStock(true)" class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Check Stock
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="overflow-x-auto mb-8">
@@ -778,18 +786,24 @@ tailwind.config = {
                     <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-users text-brand-500"></i> Customer Management
                     </h3>
-                    <div class="flex gap-2">
-                        <button onclick="downloadCustomerTemplate()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-300 transition flex items-center gap-2">
-                            <i class="fa-solid fa-download"></i> Download Template
-                        </button>
-                        <button onclick="document.getElementById('customer-bulk-upload').click()" class="px-4 py-2 bg-accent-500 text-white rounded-lg text-sm font-semibold hover:bg-accent-600 transition flex items-center gap-2">
-                            <i class="fa-solid fa-upload"></i> Bulk Upload
-                        </button>
-                        <input type="file" id="customer-bulk-upload" accept=".xlsx,.xls,.csv" class="hidden" onchange="uploadCustomers(event)">
-                        <button onclick="openAddCustomerModal()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition flex items-center gap-2">
-                            <i class="fa-solid fa-user-plus"></i> Add Customer
-                        </button>
+                    <div class="button-group">
+                        <div class="button-wrapper">
+                            <button onclick="downloadCustomerTemplate()" class="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm font-semibold hover:bg-slate-700 transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+                                <i class="fa-solid fa-download"></i> Template
+                            </button>
+                        </div>
+                        <div class="button-wrapper">
+                            <button onclick="document.getElementById('customer-bulk-upload').click()" class="px-4 py-2 bg-gradient-to-r from-accent-600 to-accent-500 hover:from-accent-700 hover:to-accent-600 text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+                                <i class="fa-solid fa-file-import"></i> Upload
+                            </button>
+                        </div>
+                        <div class="button-wrapper">
+                            <button onclick="openAddCustomerModal()" class="px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+                                <i class="fa-solid fa-user-plus"></i> Add Customer
+                            </button>
+                        </div>
                     </div>
+                    <input type="file" id="customer-bulk-upload" accept=".xlsx,.xls,.csv" class="hidden" onchange="uploadCustomers(event)">
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse" role="table">
@@ -817,8 +831,16 @@ tailwind.config = {
                     <div class="flex flex-wrap gap-3">
                         <input type="date" id="filter-date-from" class="px-3 py-2 rounded-lg border border-slate-200 text-sm">
                         <input type="date" id="filter-date-to" class="px-3 py-2 rounded-lg border border-slate-200 text-sm">
-                        <button onclick="applyDateFilter()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold">Filter</button>
-                        <button onclick="clearDateFilter()" class="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold">Reset</button>
+                        <div class="button-wrapper">
+                            <button onclick="applyDateFilter()" class="px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+                                <i class="fa-solid fa-filter"></i> Filter
+                            </button>
+                        </div>
+                        <div class="button-wrapper">
+                            <button onclick="clearDateFilter()" class="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm font-semibold hover:bg-slate-700 transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+                                <i class="fa-solid fa-redo"></i> Reset
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -886,10 +908,12 @@ tailwind.config = {
                                 </div>
                             </div>
                         </div>
-                        <button onclick="sendDailyReport()" id="send-report-btn" class="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-xl font-bold shadow-lg shadow-brand-500/30 transform hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2">
-                            <i class="fa-solid fa-paper-plane"></i>
-                            <span>Send Report</span>
-                        </button>
+                        <div class="button-wrapper w-full">
+                            <button onclick="sendDailyReport()" id="send-report-btn" class="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-xl font-bold shadow-lg shadow-brand-500/30 transform hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2">
+                                <i class="fa-solid fa-envelope"></i>
+                                <span>Send Report</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -928,9 +952,11 @@ tailwind.config = {
                     <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-calendar-check text-blue-500"></i> Activities
                     </h1>
-                    <button onclick="openActivityModal()" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
-                        <i class="fa-solid fa-plus mr-2"></i> New Activity
-                    </button>
+                    <div class="button-wrapper">
+                        <button onclick="openActivityModal()" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+                            <i class="fa-solid fa-calendar-plus"></i> New Activity
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Stats Cards -->
@@ -1167,9 +1193,11 @@ tailwind.config = {
                         <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
                             <i class="fa-solid fa-users-gear text-brand-500"></i> User Management
                         </h3>
-                        <button onclick="openCreateUserModal()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition flex items-center gap-2">
-                            <i class="fa-solid fa-user-plus"></i> Create New User
-                        </button>
+                        <div class="button-wrapper">
+                            <button onclick="openCreateUserModal()" class="px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+                                <i class="fa-solid fa-user-gear"></i> Create User
+                            </button>
+                        </div>
                     </div>
                     <!-- Afoga User Card -->
                     <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200 mb-4">
@@ -1786,6 +1814,38 @@ tailwind.config = {
 
 <!-- Toast Container -->
 <div id="toast-container" class="fixed bottom-4 right-4 z-[150]"></div>
+
+<!-- LOW STOCK ALERT MODAL -->
+<div id="low-stock-alert-modal">
+    <div class="low-stock-alert-content">
+        <div class="low-stock-alert-header">
+            <div class="low-stock-alert-icon">
+                <i class="fa-solid fa-exclamation"></i>
+            </div>
+            <h2 class="low-stock-alert-title">Low Stock Alert</h2>
+        </div>
+        
+        <p class="low-stock-alert-message">
+            <i class="fa-solid fa-info-circle mr-2"></i>
+            The following products have reached critical stock levels (≤ 5 units):
+        </p>
+        
+        <div class="low-stock-alert-products" id="low-stock-alert-products">
+            <!-- Products will be dynamically inserted here -->
+        </div>
+        
+        <p class="low-stock-alert-message text-sm mt-4 text-slate-600">
+            <i class="fa-solid fa-clock mr-2"></i>
+            This alert will appear every 30 minutes if stock levels are not updated.
+        </p>
+        
+        <div class="low-stock-alert-buttons">
+            <button onclick="acknowledgeLowStockAlert()" class="low-stock-alert-btn low-stock-acknowledge-btn">
+                <i class="fa-solid fa-check mr-2"></i>Acknowledge
+            </button>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>

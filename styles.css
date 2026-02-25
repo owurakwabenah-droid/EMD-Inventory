@@ -6,6 +6,15 @@
     box-sizing: border-box;
 }
 
+:root {
+    --primary-500: #0ea5e9;
+    --primary-600: #0284c7;
+    --accent-500: #6366f1;
+    --muted-700: #0f172a;
+    --muted-500: #64748b;
+    --radius-lg: 16px;
+}
+
 body {
     background-color: #f8fafc;
     background-image:
@@ -14,6 +23,42 @@ body {
     background-attachment: fixed;
     margin: 0;
     padding: 0;
+}
+
+/* Typography and base spacing improvements for a sleek, readable UI */
+html, body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "liga" 1, "kern" 1;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+p, label, input, button, select {
+    line-height: 1.45;
+}
+
+.text-slate-800, .text-slate-700 { color: var(--muted-700) !important; }
+
+/* Tighter card content spacing */
+.dashboard-card, .glass-card, .product-stat-card { padding: 1.25rem; border-radius: var(--radius-lg); }
+
+/* Primary button helpers */
+.btn-primary {
+    background: linear-gradient(90deg, var(--primary-600), var(--primary-500));
+    color: #ffffff;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    font-weight: 800;
+    box-shadow: 0 12px 30px rgba(14,165,233,0.14);
+}
+.btn-outline {
+    background: #ffffff;
+    color: var(--muted-700);
+    border: 1px solid rgba(2,6,23,0.06);
 }
 
 ::-webkit-scrollbar {
@@ -331,4 +376,529 @@ button:focus, input:focus, select:focus {
 
 .product-stat-card:hover {
     box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+/* ===== Sidebar dark blue and header image ===== */
+/* Dark blue sidebar with white text/icons for improved contrast */
+#sidebar {
+    background: linear-gradient(180deg, #05204a 0%, #08315f 100%);
+    color: #ffffff;
+    border-right-color: rgba(255,255,255,0.06);
+}
+
+#sidebar .h-20,
+#sidebar .px-6,
+#sidebar .px-8 {
+    background: transparent;
+    border-bottom-color: rgba(255,255,255,0.06);
+}
+
+#sidebar h1,
+#sidebar p,
+#sidebar .nav-item,
+#sidebar .nav-item i {
+    color: #ffffff !important;
+}
+
+#sidebar .nav-item {
+    color: rgba(255,255,255,0.92) !important;
+    background: transparent !important;
+    border-left: none !important;
+}
+
+#sidebar .nav-item.active {
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%) !important;
+    border-left: 3px solid #93c5fd !important; /* light blue accent */
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+#sidebar .nav-item:hover {
+    background: rgba(255,255,255,0.04) !important;
+    color: #ffffff !important;
+}
+
+#sidebar img#sidebar-avatar {
+    border-color: rgba(255,255,255,0.15) !important;
+}
+
+/* Make muted text lighter on dark background */
+#sidebar .text-slate-400 { color: rgba(255,255,255,0.7) !important; }
+#sidebar .text-slate-800 { color: #ffffff !important; }
+
+/* Header: add a better background image with dark overlay so content remains readable */
+header {
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,250,252,0.9)), url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1600&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    color: inherit;
+    border-bottom-color: rgba(255,255,255,0.06) !important;
+}
+
+/* Ensure header text and small labels are dark and readable on white header */
+header .text-slate-800,
+header .text-slate-500,
+header .text-slate-600,
+header .text-slate-400,
+header h2,
+header p {
+    color: rgba(15,23,42,0.95) !important;
+}
+
+/* Slight shadow for header icons/buttons for better contrast */
+header button, header .w-10.h-10 {
+    background: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    color: rgba(15,23,42,0.95) !important;
+}
+
+/* Make sure main content doesn't sit under sticky header visually */
+#main-container { padding-top: 12px; }
+
+/* ===== Make dashboard match sidebar (dark, modern glass cards) ===== */
+/* Overall main area darker to match sidebar */
+main, #main-container {
+    background: linear-gradient(180deg, rgba(2,16,32,0.6), rgba(4,28,48,0.55));
+    color: rgba(255,255,255,0.95);
+}
+
+/* Card treatments to look like frosted glass on dark background */
+.dashboard-card, .product-stat-card, .glass-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+    color: rgba(255,255,255,0.95);
+}
+
+/* Ensure text utility classes inside main/header are dark for white background */
+#main-container .text-slate-800 { color: #0f172a !important; }
+#main-container .text-slate-600 { color: rgba(15,23,42,0.9) !important; }
+#main-container .text-slate-500 { color: rgba(15,23,42,0.7) !important; }
+#main-container .text-slate-400 { color: rgba(15,23,42,0.55) !important; }
+
+/* Icons and small accents */
+#main-container .fa-solid, #main-container .fa-regular, #main-container i { color: rgba(15,23,42,0.85) !important; }
+
+/* Buttons and controls: subtle light backgrounds and dark text to match header/main */
+#main-container button, #main-container .btn, #main-container .toggle-slider {
+    background: rgba(255,255,255,0.95);
+    color: #0f172a !important;
+    border: 1px solid rgba(2,6,23,0.06);
+}
+
+/* Make small info boxes stand out with an accent tint */
+.dashboard-card .w-12, .dashboard-card .w-24 { background: linear-gradient(135deg, #0ea5e9, #6366f1); }
+
+/* Keep form inputs readable: light background and dark text */
+#main-container input, #main-container select, #main-container textarea {
+    background: #ffffff;
+    border: 1px solid rgba(2,6,23,0.06);
+    color: #0f172a !important;
+}
+
+/* Toasts: invert to dark to match dashboard */
+.toast { background: rgba(3,7,18,0.7); color: #e6f4ff; border-left-color: transparent; }
+
+/* Subtle divider color for dark layout */
+hr, .border-slate-200 { border-color: rgba(255,255,255,0.06) !important; }
+
+/* Final accessibility: ensure focus outlines are visible on dark bg */
+button:focus, input:focus, select:focus { outline: 2px solid rgba(147,197,253,0.9); outline-offset: 2px; }
+
+/* ===== Restore header and main to white, modern appearance ===== */
+/* Keep body background as originally defined at top so page feels light */
+body { color: #0f172a; }
+
+/* Header: modern white glass bar with subtle shadow */
+header {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.95) 100%);
+    color: #0f172a !important;
+    border-bottom-color: rgba(2,6,23,0.06) !important;
+    box-shadow: 0 6px 20px rgba(2,6,23,0.06);
+}
+
+/* layered colorful blend overlay (animated) */
+header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(circle at 10% 20%, rgba(99,102,241,0.18) 0%, transparent 25%),
+        radial-gradient(circle at 85% 80%, rgba(14,165,233,0.14) 0%, transparent 28%),
+        radial-gradient(circle at 70% 20%, rgba(236,72,153,0.12) 0%, transparent 26%),
+        linear-gradient(120deg, rgba(99,102,241,0.06), rgba(14,165,233,0.04));
+    mix-blend-mode: screen;
+    filter: blur(28px) saturate(1.05);
+    transform: translate3d(-6%,0,0);
+    animation: headerGradientShift 10s ease-in-out infinite;
+    opacity: 0.95;
+}
+
+header::after {
+    content: '';
+    position: absolute;
+    left: -10%;
+    top: -30%;
+    width: 40%;
+    height: 140%;
+    background: radial-gradient(circle at 30% 30%, rgba(99,102,241,0.06), transparent 35%);
+    filter: blur(40px);
+    transform-origin: center;
+    pointer-events: none;
+    z-index: 0;
+    animation: headerBlobFloat 12s ease-in-out infinite;
+    opacity: 0.9;
+}
+
+/* Ensure header children render above overlays */
+header > * { position: relative; z-index: 1; }
+
+@keyframes headerGradientShift {
+    0% { transform: translate3d(-8%,0,0) scale(1); }
+    50% { transform: translate3d(8%,0,0) scale(1.02); }
+    100% { transform: translate3d(-8%,0,0) scale(1); }
+}
+
+@keyframes headerBlobFloat {
+    0% { transform: translateY(0) rotate(0deg) scale(1); }
+    50% { transform: translateY(6px) rotate(6deg) scale(1.03); }
+    100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+
+/* Main area: keep content panels white and modern while the sidebar remains dark */
+main, #main-container {
+    background: transparent !important;
+    color: #0f172a !important;
+}
+
+/* Glass utility returns to light translucent frosted look */
+.glass {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    color: #0f172a !important;
+}
+
+/* Cards and login modals should be light and modern */
+.dashboard-card, .product-stat-card, .glass-card, .login-card, .welcome-card, .password-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%) !important;
+    border: 1px solid rgba(0,0,0,0.04) !important;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.06) !important;
+    color: #0f172a !important;
+}
+
+/* ===== Polished colorful dashboard card accents & uniform buttons ===== */
+#main-container .dashboard-card,
+#main-container .glass-card,
+#main-container .product-stat-card {
+    position: relative;
+    overflow: visible;
+    border-radius: 16px;
+    transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+#main-container .dashboard-card:hover,
+#main-container .glass-card:hover,
+#main-container .product-stat-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(2,6,23,0.08);
+}
+
+/* Decorative colorful blobs per card to make each card pop */
+#view-dashboard .grid > .dashboard-card::before {
+    content: '';
+    position: absolute;
+    right: -36px;
+    top: -36px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    filter: blur(28px);
+    opacity: 0.95;
+    z-index: 0;
+}
+
+#view-dashboard .grid > .dashboard-card:nth-child(1)::before { background: radial-gradient(circle, rgba(14,165,233,0.22), transparent 40%); }
+#view-dashboard .grid > .dashboard-card:nth-child(2)::before { background: radial-gradient(circle, rgba(99,102,241,0.22), transparent 40%); }
+#view-dashboard .grid > .dashboard-card:nth-child(3)::before { background: radial-gradient(circle, rgba(249,115,22,0.20), transparent 40%); }
+#view-dashboard .grid > .dashboard-card:nth-child(4)::before { background: radial-gradient(circle, rgba(236,72,153,0.20), transparent 40%); }
+#view-dashboard .grid > .dashboard-card:nth-child(5)::before { background: radial-gradient(circle, rgba(16,185,129,0.20), transparent 40%); }
+#view-dashboard .grid > .dashboard-card:nth-child(6)::before { background: radial-gradient(circle, rgba(6,182,212,0.18), transparent 40%); }
+
+/* Ensure card content appears above decorations */
+#main-container .dashboard-card > .relative, #main-container .glass-card > .relative { position: relative; z-index: 1; }
+
+/* Accent left border strip for important cards */
+.dashboard-card { border-left: 6px solid transparent; }
+.dashboard-card .w-12, .dashboard-card .w-24 { box-shadow: 0 8px 20px rgba(2,6,23,0.06); }
+
+/* Uniform main-button styling (keeps existing color utilities) */
+#main-container button, #main-container .btn, .glass-card button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    box-shadow: 0 8px 24px rgba(2,6,23,0.06);
+    transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+}
+
+#main-container button:hover, #main-container .btn:hover, .glass-card button:hover { transform: translateY(-3px); }
+
+/* Primary colored buttons keep their background but get stronger shadow */
+#main-container .bg-brand-600, #main-container .bg-brand-500 { box-shadow: 0 12px 30px rgba(14,165,233,0.18); }
+#main-container .bg-accent-500, #main-container .bg-purple-500 { box-shadow: 0 12px 30px rgba(99,102,241,0.18); }
+
+/* Light buttons (bg-slate-200 / bg-white) - visible border and text */
+#main-container .bg-slate-200, #main-container .bg-white { border: 1px solid rgba(2,6,23,0.06); color: rgba(15,23,42,0.9) !important; }
+
+/* Small badges and counts */
+#main-container .text-xs.font-bold.px-2.py-1, #main-container .badge {
+    background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(248,250,252,0.95));
+    border: 1px solid rgba(2,6,23,0.04);
+    color: rgba(15,23,42,0.9);
+    box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+}
+
+/* Tables and panels: subtle elevation */
+#main-container table thead tr { background: linear-gradient(90deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98)); }
+
+/* Keep interactive elements accessible */
+#main-container a, #main-container button { text-decoration: none; }
+
+/* Reduce overlay z-index conflict with header animation */
+header::before, header::after { opacity: 0.7; }
+
+/* Restore readable utility text colors inside main/header */
+.text-slate-800, .text-slate-700 { color: #0f172a !important; }
+.text-slate-600 { color: rgba(15,23,42,0.9) !important; }
+.text-slate-500 { color: rgba(15,23,42,0.7) !important; }
+.text-slate-400 { color: rgba(15,23,42,0.55) !important; }
+
+/* UI element contrasts for light header/main */
+.border-slate-200 { border-color: rgba(2,6,23,0.06) !important; }
+.bg-white { background-color: #ffffff !important; }
+
+/* Header buttons: subtle light backgrounds, dark icons */
+header .w-10.h-10 {
+    background: #ffffff !important;
+    border: 1px solid rgba(2,6,23,0.06) !important;
+    color: #0f172a !important;
+}
+
+/* ===== BUTTON WRAPPER CARD STYLING ===== */
+.button-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(14, 165, 233, 0.04) 100%);
+    border: 1.5px solid rgba(14, 165, 233, 0.2);
+    border-radius: 12px;
+    padding: 0.5rem;
+    backdrop-filter: blur(8px);
+    transition: all 220ms ease;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.08);
+}
+
+.button-wrapper:hover {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(14, 165, 233, 0.08) 100%);
+    border-color: rgba(14, 165, 233, 0.4);
+    box-shadow: 0 8px 24px rgba(14, 165, 233, 0.12);
+    transform: translateY(-2px);
+}
+
+.button-wrapper.w-full {
+    display: flex;
+    width: 100%;
+}
+
+.button-wrapper.w-full button {
+    width: 100%;
+}
+
+.button-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* ===== LOW STOCK ALERT MODAL ===== */
+#low-stock-alert-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 300ms ease-out;
+}
+
+#low-stock-alert-modal.show {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.low-stock-alert-content {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    animation: slideUp 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid rgba(239, 68, 68, 0.1);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.low-stock-alert-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.low-stock-alert-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #dc2626;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+.low-stock-alert-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.low-stock-alert-products {
+    background: rgba(239, 68, 68, 0.05);
+    border-left: 4px solid #ef4444;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.low-stock-alert-product-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(239, 68, 68, 0.1);
+    font-size: 0.95rem;
+    color: #0f172a;
+}
+
+.low-stock-alert-product-item:last-child {
+    border-bottom: none;
+}
+
+.low-stock-alert-product-name {
+    font-weight: 600;
+}
+
+.low-stock-alert-product-stock {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.low-stock-alert-message {
+    color: rgba(15, 23, 42, 0.7);
+    font-size: 0.95rem;
+    margin: 1rem 0;
+    line-height: 1.6;
+}
+
+.low-stock-alert-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.low-stock-alert-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 220ms ease;
+    font-size: 0.95rem;
+}
+
+.low-stock-acknowledge-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+}
+
+.low-stock-acknowledge-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(239, 68, 68, 0.4);
+}
+
+.low-stock-alert-close-btn {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.low-stock-alert-close-btn:hover {
+    background: #d1d5db;
+    transform: translateY(-2px);
 }

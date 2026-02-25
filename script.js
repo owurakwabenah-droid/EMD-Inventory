@@ -436,7 +436,24 @@ function formatCurrency(amount, currency = 'GHS') {
     if (currency === 'GHS') {
         return `₵${amount.toLocaleString()}`;
     }
-    return `$${(amount / EXCHANGE_RATE).toFixed(2)}`;
+    const usdAmount = (amount / EXCHANGE_RATE).toFixed(2);
+    return `$${parseFloat(usdAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatNumber(num, decimals = 2) {
+    if (typeof num !== 'number') num = parseFloat(num) || 0;
+    const formatted = num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    return formatted;
+}
+
+function formatUSD(amount) {
+    if (typeof amount !== 'number') amount = parseFloat(amount) || 0;
+    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatGHS(amount) {
+    if (typeof amount !== 'number') amount = parseFloat(amount) || 0;
+    return `₵${amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
 function formatDate(isoString) {
@@ -452,9 +469,11 @@ function resetIdleTimer() {
         clearTimeout(idleTimer);
     }
     if (currentUser) {
+        // persist last activity time so session can be resumed across reloads
+        try { localStorage.setItem('emdLastActivity', Date.now().toString()); } catch(e) {}
         idleTimer = setTimeout(() => {
             logActivity('Auto Logout', `${currentUser} logged out due to inactivity`);
-            logout();
+            logout(true);
         }, IDLE_TIMEOUT);
     }
 }
@@ -1082,6 +1101,9 @@ function login() {
             currentRole = users[username].role;
             logActivity('Login', `${username} logged in successfully`);
             
+            // Persist session across reloads
+            try { localStorage.setItem('emdCurrentUser', username); localStorage.setItem('emdLastActivity', Date.now().toString()); } catch(e) {}
+
             resetIdleTimer();
             initIdleTimer();
             
@@ -1151,6 +1173,7 @@ function completeLogin() {
     renderActivityLog();
     renderCustomers();
     startStockAlertChecker();
+    initializeLowStockMonitoring(); // Initialize low stock alert modal with sound
     
     // Initialize IndexedDB for music storage
     setTimeout(() => {
@@ -1249,6 +1272,8 @@ function changePassword() {
 
 function logout() {
     logActivity('Logout', `${currentUser} logged out`);
+    // Clear persisted session
+    try { localStorage.removeItem('emdCurrentUser'); localStorage.removeItem('emdLastActivity'); } catch(e) {}
     if (idleTimer) {
         clearTimeout(idleTimer);
         idleTimer = null;
@@ -1317,8 +1342,8 @@ function initProductSelect() {
     select.addEventListener('change', (e) => {
         const selectedOption = e.target.options[e.target.selectedIndex];
         const price = parseInt(selectedOption.dataset.price || 0);
-        const usd = (price / EXCHANGE_RATE).toFixed(2);
-        document.getElementById('product-price-display').value = price ? `₵${price.toLocaleString()} / $${usd}` : '';
+        const usdAmount = price / EXCHANGE_RATE;
+        document.getElementById('product-price-display').value = price ? `₵${price.toLocaleString()} / ${formatUSD(usdAmount)}` : '';
     });
 }
 
@@ -1370,11 +1395,11 @@ function onRegistrationPackageChange() {
     
     // Update breakdown info
     document.getElementById('breakdown-products-ghs').textContent = `₵${breakdown.productsGHS.toLocaleString()}`;
-    document.getElementById('breakdown-products-usd').textContent = `$${breakdown.productsUSD.toFixed(2)}`;
+    document.getElementById('breakdown-products-usd').textContent = formatUSD(breakdown.productsUSD);
     document.getElementById('breakdown-registration-ghs').textContent = `₵${breakdown.registrationGHS.toLocaleString()}`;
-    document.getElementById('breakdown-registration-usd').textContent = `$${breakdown.registrationUSD.toFixed(2)}`;
+    document.getElementById('breakdown-registration-usd').textContent = formatUSD(breakdown.registrationUSD);
     document.getElementById('breakdown-total-ghs').textContent = `₵${breakdown.totalGHS.toLocaleString()}`;
-    document.getElementById('breakdown-total-usd').textContent = `$${breakdown.totalUSD.toLocaleString()}`;
+    document.getElementById('breakdown-total-usd').textContent = formatUSD(breakdown.totalUSD);
     
     // Show breakdown
     document.getElementById('package-breakdown-section').classList.remove('hidden');
@@ -1623,7 +1648,7 @@ function updateTotals(subtotal) {
     const total = subtotal + regFee;
     
     document.getElementById('summary-subtotal-ghs').textContent = `₵${subtotal.toLocaleString()}`;
-    document.getElementById('summary-subtotal-usd').textContent = `$${(subtotal / EXCHANGE_RATE).toFixed(2)}`;
+    document.getElementById('summary-subtotal-usd').textContent = formatUSD(subtotal / EXCHANGE_RATE);
     
     const regRow = document.getElementById('registration-fee-row');
     if (regFee > 0) {
@@ -1632,13 +1657,13 @@ function updateTotals(subtotal) {
             document.getElementById('registration-fee-label').textContent = packageName;
         }
         document.getElementById('summary-reg-fee-ghs').textContent = `₵${regFee.toLocaleString()}`;
-        document.getElementById('summary-reg-fee-usd').textContent = `$${(regFee / EXCHANGE_RATE).toFixed(2)}`;
+        document.getElementById('summary-reg-fee-usd').textContent = formatUSD(regFee / EXCHANGE_RATE);
     } else {
         regRow.classList.add('hidden');
     }
     
     document.getElementById('summary-total-ghs').textContent = `₵${total.toLocaleString()}`;
-    document.getElementById('summary-total-usd').textContent = `$${(total / EXCHANGE_RATE).toFixed(2)}`;
+    document.getElementById('summary-total-usd').textContent = formatUSD(total / EXCHANGE_RATE);
 }
 
 function saveOrder() {
@@ -1782,11 +1807,11 @@ function updateDashboardStats() {
     const totalQuantity = inventory.reduce((sum, p) => sum + p.stock, 0);
     
     animateValue("dash-total-revenue", 0, totalRevenue, 1500, true);
-    document.getElementById('dash-total-revenue-usd').textContent = `$${(totalRevenue / EXCHANGE_RATE).toFixed(2)}`;
+    document.getElementById('dash-total-revenue-usd').textContent = formatUSD(totalRevenue / EXCHANGE_RATE);
     animateValue("dash-total-orders", 0, totalOrders, 1500);
     animateValue("dash-products-sold", 0, totalProductsSold, 1500);
     animateValue("dash-avg-order", 0, Math.floor(avgOrder), 1500, true);
-    document.getElementById('dash-avg-order-usd').textContent = `$${(avgOrder / EXCHANGE_RATE).toFixed(2)}`;
+    document.getElementById('dash-avg-order-usd').textContent = formatUSD(avgOrder / EXCHANGE_RATE);
     animateValue("dash-total-products", 0, totalProductTypes, 1500);
     animateValue("dash-total-quantity", 0, totalQuantity, 1500);
     
@@ -2502,7 +2527,7 @@ function viewOrderDetails(orderId) {
     document.getElementById('modal-order-destination').textContent = order.destination;
     document.getElementById('modal-order-createdby').textContent = order.createdBy ? order.createdBy.charAt(0).toUpperCase() + order.createdBy.slice(1) : 'Unknown';
     document.getElementById('modal-order-total-ghs').textContent = `₵${order.total.toLocaleString()}`;
-    document.getElementById('modal-order-total-usd').textContent = `$${(order.total / EXCHANGE_RATE).toFixed(2)}`;
+    document.getElementById('modal-order-total-usd').textContent = formatUSD(order.total / EXCHANGE_RATE);
     
     const itemsContainer = document.getElementById('modal-order-items');
     itemsContainer.innerHTML = '';
@@ -2532,12 +2557,12 @@ function viewOrderDetails(orderId) {
         div.innerHTML = `
             <div>
                 <p class="font-medium">${item.name}</p>
-                <p class="text-xs text-slate-500">Qty: ${item.qty} x ₵${item.price} / $${(item.price/EXCHANGE_RATE).toFixed(2)}</p>
+                <p class="text-xs text-slate-500">Qty: ${item.qty} x ₵${item.price.toLocaleString()} / ${formatUSD(item.price/EXCHANGE_RATE)}</p>
             </div>
             <div class="flex items-center gap-3">
                 <div class="text-right">
                     <div class="font-bold">₵${item.total.toLocaleString()}</div>
-                    <div class="text-xs text-slate-400">$${(item.total/EXCHANGE_RATE).toFixed(2)}</div>
+                    <div class="text-xs text-slate-400">${formatUSD(item.total/EXCHANGE_RATE)}</div>
                 </div>
                 ${canEditQty ? `<button onclick="openEditModal('${order.id}', ${index})" class="w-7 h-7 rounded bg-brand-100 text-brand-600 hover:bg-brand-500 hover:text-white" aria-label="Edit quantity"><i class="fa-solid fa-pen text-xs"></i></button>` : ''}
             </div>
@@ -2548,7 +2573,7 @@ function viewOrderDetails(orderId) {
     if (order.registrationFee > 0) {
         const div = document.createElement('div');
         div.className = 'flex justify-between items-center py-2 bg-green-50 px-2 rounded mt-2';
-        div.innerHTML = `<span class="text-sm font-medium text-green-700">Registration Fee</span><span class="font-bold text-green-700">₵${order.registrationFee.toLocaleString()} / $${(order.registrationFee/EXCHANGE_RATE).toFixed(2)}</span>`;
+        div.innerHTML = `<span class="text-sm font-medium text-green-700">Registration Fee</span><span class="font-bold text-green-700">₵${order.registrationFee.toLocaleString()} / ${formatUSD(order.registrationFee/EXCHANGE_RATE)}</span>`;
         itemsContainer.appendChild(div);
     }
     
@@ -2658,8 +2683,8 @@ function downloadOrderPDF() {
     const tableData = order.items.map(item => [
         item.name,
         item.qty.toString(),
-        `₵${item.price.toLocaleString()} / $${(item.price/EXCHANGE_RATE).toFixed(2)}`,
-        `₵${item.total.toLocaleString()} / $${(item.total/EXCHANGE_RATE).toFixed(2)}`
+        `₵${item.price.toLocaleString()} / ${formatUSD(item.price/EXCHANGE_RATE)}`,
+        `₵${item.total.toLocaleString()} / ${formatUSD(item.total/EXCHANGE_RATE)}`
     ]);
     
     doc.autoTable({
@@ -2681,16 +2706,16 @@ function downloadOrderPDF() {
             
             doc.setFontSize(9);
             doc.text('📦 Product Claims:', 18, finalY + 3);
-            doc.text(`₵${breakdown.productsGHS.toLocaleString()} / $${breakdown.productsUSD.toFixed(2)}`, 160, finalY + 3, { align: 'right' });
+            doc.text(`₵${breakdown.productsGHS.toLocaleString()} / ${formatUSD(breakdown.productsUSD)}`, 160, finalY + 3, { align: 'right' });
             
             doc.text('🎖️ Registration Charge:', 18, finalY + 10);
-            doc.text(`₵${breakdown.registrationGHS.toLocaleString()} / $${breakdown.registrationUSD.toFixed(2)}`, 160, finalY + 10, { align: 'right' });
+            doc.text(`₵${breakdown.registrationGHS.toLocaleString()} / ${formatUSD(breakdown.registrationUSD)}`, 160, finalY + 10, { align: 'right' });
             
             finalY += 30;
         } else {
             doc.setFont(undefined, 'bold');
             doc.text('Registration Fee:', 14, finalY);
-            doc.text(`₵${order.registrationFee.toLocaleString()} / $${(order.registrationFee/EXCHANGE_RATE).toFixed(2)}`, 150, finalY, { align: 'right' });
+            doc.text(`₵${order.registrationFee.toLocaleString()} / ${formatUSD(order.registrationFee/EXCHANGE_RATE)}`, 150, finalY, { align: 'right' });
             finalY += 10;
             doc.setFont(undefined, 'normal');
         }
@@ -2699,7 +2724,7 @@ function downloadOrderPDF() {
     doc.setFontSize(14);
     doc.setFont(undefined, 'bold');
     doc.text('Grand Total:', 14, finalY);
-    doc.text(`₵${order.total.toLocaleString()} / $${(order.total/EXCHANGE_RATE).toFixed(2)}`, 150, finalY, { align: 'right' });
+    doc.text(`₵${order.total.toLocaleString()} / ${formatUSD(order.total/EXCHANGE_RATE)}`, 150, finalY, { align: 'right' });
     
     doc.save(`Order_${order.id}.pdf`);
 }
@@ -2804,6 +2829,95 @@ function checkLowStock(auto = false) {
 function restockProductByName(name) {
     const index = inventory.findIndex(p => p.name === name);
     if (index !== -1) restockProduct(index);
+}
+
+// ============================================
+// LOW STOCK ALERT MODAL WITH SOUND
+// ============================================
+let lastLowStockAlertTime = 0;
+const LOW_STOCK_ALERT_INTERVAL = 30 * 60 * 1000; // 30 minutes
+
+function playStockAlertSound() {
+    // Create audio context for alert sound
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Play alarm tone sequence
+        const now = audioContext.currentTime;
+        oscillator.frequency.setValueAtTime(800, now);
+        oscillator.frequency.setValueAtTime(1000, now + 0.1);
+        oscillator.frequency.setValueAtTime(800, now + 0.2);
+        oscillator.frequency.setValueAtTime(1200, now + 0.3);
+        
+        gainNode.gain.setValueAtTime(0.3, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+        
+        oscillator.start(now);
+        oscillator.stop(now + 0.8);
+    } catch (e) {
+        console.log('Audio context not available:', e);
+    }
+}
+
+function showLowStockAlertModal() {
+    const now = Date.now();
+    
+    // Check if enough time has passed since last alert (30 minutes)
+    if (now - lastLowStockAlertTime < LOW_STOCK_ALERT_INTERVAL) {
+        return; // Too soon, don't show alert again
+    }
+    
+    const lowStockProducts = inventory.filter(p => p.stock <= LOW_STOCK_THRESHOLD && !disabledProducts.includes(p.name));
+    
+    if (lowStockProducts.length > 0) {
+        lastLowStockAlertTime = now;
+        
+        // Update modal content
+        const productsContainer = document.getElementById('low-stock-alert-products');
+        productsContainer.innerHTML = '';
+        
+        lowStockProducts.forEach(product => {
+            const div = document.createElement('div');
+            div.className = 'low-stock-alert-product-item';
+            div.innerHTML = `
+                <div class="low-stock-alert-product-name">${product.name}</div>
+                <div class="low-stock-alert-product-stock">${product.stock} left</div>
+            `;
+            productsContainer.appendChild(div);
+        });
+        
+        // Play alert sound
+        playStockAlertSound();
+        
+        // Show modal with animation
+        const modal = document.getElementById('low-stock-alert-modal');
+        modal.classList.add('show');
+        
+        // Log activity
+        logActivity('Low Stock Alert', `${lowStockProducts.length} product(s) in low stock`, 'Acknowledged by system');
+    }
+}
+
+function acknowledgeLowStockAlert() {
+    const modal = document.getElementById('low-stock-alert-modal');
+    modal.classList.remove('show');
+    logActivity('Low Stock Alert Acknowledged', `User acknowledged low stock alert`, 'System notification');
+}
+
+// Auto-check low stock every 30 minutes
+function initializeLowStockMonitoring() {
+    // Check immediately on page load
+    setTimeout(() => {
+        showLowStockAlertModal();
+    }, 2000);
+    
+    // Then check every 30 minutes
+    setInterval(showLowStockAlertModal, LOW_STOCK_ALERT_INTERVAL);
 }
 
 // ============================================
@@ -3323,6 +3437,31 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize on page load
     loadUserData();
+    // Try to restore session from localStorage
+    const savedUser = localStorage.getItem('emdCurrentUser');
+    const lastActivity = parseInt(localStorage.getItem('emdLastActivity') || '0', 10);
+    if (savedUser && users[savedUser]) {
+        const now = Date.now();
+        if (lastActivity && (now - lastActivity) < IDLE_TIMEOUT) {
+            // resume session
+            currentUser = savedUser;
+            currentRole = users[savedUser].role;
+            logActivity('Session Resume', `${savedUser} session resumed after reload`);
+            resetIdleTimer();
+            initIdleTimer();
+            // If user hasn't changed password, show change flow
+            if (!users[savedUser].passwordChanged) {
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('password-change-modal').classList.remove('hidden');
+            } else {
+                completeLogin();
+            }
+        } else {
+            // expired session
+            localStorage.removeItem('emdCurrentUser');
+            localStorage.removeItem('emdLastActivity');
+        }
+    }
 });
 
 function switchCalculatorTab(tabName) {
@@ -3342,16 +3481,16 @@ function switchCalculatorTab(tabName) {
 function calculateRepurchaseBonus() {
     const amount = parseFloat(document.getElementById('repurchase-amount').value) || 0;
     const bonus = amount * 0.20;
-    document.getElementById('repurchase-bonus-display').textContent = `$${bonus.toFixed(2)}`;
-    document.getElementById('repurchase-amount-display').textContent = `$${amount.toFixed(2)}`;
-    console.log(`🛒 Repurchase: $${amount.toFixed(2)} → 20% = $${bonus.toFixed(2)}`);
+    document.getElementById('repurchase-bonus-display').textContent = formatUSD(bonus);
+    document.getElementById('repurchase-amount-display').textContent = formatUSD(amount);
+    console.log(`🛒 Repurchase: ${formatUSD(amount)} → 20% = ${formatUSD(bonus)}`);
 }
 
 function calculateReferralBonus() {
     const amount = parseFloat(document.getElementById('referral-amount').value) || 0;
     const bonus = amount * 0.25;
-    document.getElementById('referral-bonus-display').textContent = `$${bonus.toFixed(2)}`;
-    document.getElementById('referral-amount-display').textContent = `$${amount.toFixed(2)}`;
+    document.getElementById('referral-bonus-display').textContent = formatUSD(bonus);
+    document.getElementById('referral-amount-display').textContent = formatUSD(amount);
     console.log(`👥 Referral: $${amount.toFixed(2)} → 25% = $${bonus.toFixed(2)}`);
 }
 
@@ -3359,19 +3498,19 @@ function calculateMatchingBonus() {
     const rightAmount = parseFloat(document.getElementById('matching-right').value) || 0;
     const leftAmount = parseFloat(document.getElementById('matching-left').value) || 0;
     if (rightAmount < 20 || leftAmount < 20) {
-        document.getElementById('matching-bonus-display').textContent = '$0.00';
-        document.getElementById('matching-uniform-display').textContent = '$0.00';
-        document.getElementById('matching-right-display').textContent = '$0.00';
-        document.getElementById('matching-left-display').textContent = '$0.00';
+        document.getElementById('matching-bonus-display').textContent = formatUSD(0);
+        document.getElementById('matching-uniform-display').textContent = formatUSD(0);
+        document.getElementById('matching-right-display').textContent = formatUSD(0);
+        document.getElementById('matching-left-display').textContent = formatUSD(0);
         return;
     }
     const uniformMatch = Math.min(rightAmount, leftAmount);
     const bonus = uniformMatch * 0.15;
-    document.getElementById('matching-right-display').textContent = `$${uniformMatch.toFixed(2)}`;
-    document.getElementById('matching-left-display').textContent = `$${uniformMatch.toFixed(2)}`;
-    document.getElementById('matching-uniform-display').textContent = `$${uniformMatch.toFixed(2)}`;
-    document.getElementById('matching-bonus-display').textContent = `$${bonus.toFixed(2)}`;
-    console.log(`⚖️ Match: R=$${rightAmount.toFixed(2)}, L=$${leftAmount.toFixed(2)} → U=$${uniformMatch.toFixed(2)} → 15% = $${bonus.toFixed(2)}`);
+    document.getElementById('matching-right-display').textContent = formatUSD(uniformMatch);
+    document.getElementById('matching-left-display').textContent = formatUSD(uniformMatch);
+    document.getElementById('matching-uniform-display').textContent = formatUSD(uniformMatch);
+    document.getElementById('matching-bonus-display').textContent = formatUSD(bonus);
+    console.log(`⚖️ Match: R=${formatUSD(rightAmount)}, L=${formatUSD(leftAmount)} → U=${formatUSD(uniformMatch)} → 15% = ${formatUSD(bonus)}`);
 }
 
 window.addEventListener('beforeunload', () => {
