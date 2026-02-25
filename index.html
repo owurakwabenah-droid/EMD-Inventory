@@ -1,0 +1,1791 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMD Inventory Dashboard</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Fontsource Fonts -->
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/plus-jakarta-sans@5.0.0/index.min.css" rel="stylesheet">
+<!-- Custom Styles -->
+<link rel="stylesheet" href="styles.css">
+<!-- jsPDF for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<!-- Chart.js for graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- SheetJS for Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Tailwind CSS Configuration -->
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            fontFamily: {
+                sans: ['Plus Jakarta Sans', 'sans-serif'],
+            },
+            colors: {
+                brand: {
+                    50: '#f0f9ff',
+                    100: '#e0f2fe',
+                    500: '#0ea5e9',
+                    600: '#0284c7',
+                    700: '#0369a1',
+                    900: '#0c4a6e',
+                },
+                accent: {
+                    500: '#6366f1',
+                    600: '#4f46e5',
+                }
+            },
+            animation: {
+                'fade-in': 'fadeIn 0.5s ease-out forwards',
+                'slide-up': 'slideUp 0.4s ease-out forwards',
+                'slide-right': 'slideRight 0.5s ease-out forwards',
+                'slide-left': 'slideLeft 0.5s ease-out forwards',
+                'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'bounce-slow': 'bounce 2s infinite',
+                'float': 'float 3s ease-in-out infinite',
+            },
+            keyframes: {
+                fadeIn: {
+                    '0%': { opacity: '0' },
+                    '100%': { opacity: '1' },
+                },
+                slideUp: {
+                    '0%': { opacity: '0', transform: 'translateY(20px)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
+                },
+                slideRight: {
+                    '0%': { opacity: '0', transform: 'translateX(100px)' },
+                    '100%': { opacity: '1', transform: 'translateX(0)' },
+                },
+                slideLeft: {
+                    '0%': { opacity: '0', transform: 'translateX(-100px)' },
+                    '100%': { opacity: '1', transform: 'translateX(0)' },
+                },
+                float: {
+                    '0%, 100%': { transform: 'translateY(0px)' },
+                    '50%': { transform: 'translateY(-10px)' },
+                }
+            }
+        }
+    }
+}
+</script>
+<!-- External Application Script -->
+<script src="script.js" defer></script>
+</head>
+<body class="text-slate-800 antialiased h-screen flex overflow-hidden selection:bg-brand-100 selection:text-brand-900">
+
+<!-- Login Modal -->
+<div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div class="absolute inset-0 bg-gradient-to-br from-brand-900 via-slate-900 to-accent-900"></div>
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl animate-float"></div>
+        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-accent-500/20 rounded-full blur-3xl animate-float" style="animation-delay: 1.5s;"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-400/10 rounded-full blur-3xl animate-pulse-slow"></div>
+    </div>
+    <div class="login-card relative z-10 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-slide-up">
+        <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-accent-600 px-8 py-12 text-center relative overflow-hidden">
+            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
+            <div class="relative">
+                <div class="w-24 h-24 bg-white/20 backdrop-blur-md rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg animate-float">
+                    <i class="fa-solid fa-cube text-5xl text-white"></i>
+                </div>
+                <h1 id="login-title" class="text-3xl font-bold text-white mb-2 tracking-tight">EMD Inventory</h1>
+                <p class="text-brand-100 text-sm font-medium">Secure Admin Portal</p>
+            </div>
+        </div>
+        <div class="p-8">
+            <!-- Overall Error Alert -->
+            <div id="login-error-alert" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 animate-pulse">
+                <i class="fa-solid fa-circle-exclamation text-red-500 text-xl flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="font-bold text-red-700" id="login-error-title">Error</p>
+                    <p class="text-sm text-red-600" id="login-error-message">Please fill all fields</p>
+                </div>
+            </div>
+            
+            <div id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide flex items-center justify-between">
+                        <span>Username</span>
+                        <span id="username-error" class="text-red-500 text-xs font-normal hidden">Required</span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="login-username" placeholder="Enter username" onchange="clearLoginError()" oninput="clearLoginError()" class="w-full px-4 py-3 pl-11 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all" aria-label="Username">
+                        <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide flex items-center justify-between">
+                        <span>Password</span>
+                        <span id="password-error" class="text-red-500 text-xs font-normal hidden">Required</span>
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="login-password" placeholder="Enter password" onchange="clearLoginError()" oninput="clearLoginError()" class="w-full px-4 py-3 pl-11 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all" aria-label="Password" onkeypress="handleLoginKeyPress(event)">
+                        <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    </div>
+                </div>
+                <button onclick="login()" id="login-btn" class="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-xl font-bold shadow-lg shadow-brand-500/30 transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span id="login-btn-text">Login to Dashboard</span>
+                </button>
+            </div>
+        </div>
+        <div class="px-8 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-t border-slate-200 text-center">
+            <p class="text-xs text-slate-400 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Secure Login • Auto-logout after 30 minutes of inactivity</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Welcome Modal -->
+<div id="welcome-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+            <div class="bg-gradient-to-r from-brand-500 to-accent-500 px-8 py-10 text-center">
+                <div class="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <i id="welcome-icon" class="fa-solid fa-sun text-5xl text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white" id="welcome-greeting">Good Morning!</h2>
+                <p class="text-brand-100 text-sm mt-2">Welcome back to EMD Inventory</p>
+            </div>
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-6">
+                    <img id="welcome-avatar" src="" alt="User Avatar" class="w-16 h-16 rounded-full border-2 border-brand-200 object-cover">
+                    <div>
+                        <p class="font-bold text-slate-800" id="welcome-username">Boison</p>
+                        <p class="text-sm text-slate-500" id="welcome-role">Main Admin</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('welcome-modal')" class="w-full py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition">
+                    <i class="fa-solid fa-check mr-2"></i> Continue to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Change Modal -->
+<div id="password-change-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+            <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-8 text-center">
+                <div class="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                    <i class="fa-solid fa-key text-4xl text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Strong Password Required</h2>
+                <p class="text-amber-100 text-sm mt-1">For security, please set a new password</p>
+            </div>
+            <div class="p-8 space-y-4">
+                <!-- Overall Error Alert -->
+                <div id="password-change-error" class="hidden p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 mb-4">
+                    <i class="fa-solid fa-circle-exclamation text-red-500 text-xl flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-bold text-red-700" id="password-error-title">Error</p>
+                        <p class="text-sm text-red-600" id="password-error-message">Please fill all fields</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide flex items-center justify-between">
+                        <span>New Password</span>
+                        <span id="new-password-error" class="text-red-500 text-xs font-normal hidden">6+ characters</span>
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="new-password" placeholder="Min 6 characters" oninput="clearPasswordError()" class="w-full px-4 py-3 pl-11 rounded-xl border border-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all" aria-label="New Password">
+                        <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    </div>
+                    <div class="mt-2">
+                        <div class="password-strength" id="password-strength-bar"></div>
+                        <p class="text-xs text-slate-400 mt-1" id="password-strength-text">Password strength</p>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide flex items-center justify-between">
+                        <span>Confirm Password</span>
+                        <span id="confirm-password-error" class="text-red-500 text-xs font-normal hidden">Must match</span>
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="confirm-password" placeholder="Confirm new password" oninput="clearPasswordError()" class="w-full px-4 py-3 pl-11 rounded-xl border border-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all" aria-label="Confirm Password" onkeypress="handlePasswordChangeKeyPress(event)">
+                        <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    </div>
+                </div>
+                <button onclick="changePassword()" id="change-password-btn" class="w-full py-4 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white rounded-xl font-bold shadow-lg shadow-amber-500/30 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-check mr-2"></i> Update Password
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Page Loader -->
+<div id="page-loader" class="fixed inset-0 z-[99] bg-white flex flex-col items-center justify-center transition-opacity duration-300 hidden">
+    <div class="loader-ring mb-4"></div>
+    <h2 class="text-xl font-bold text-brand-600 tracking-wider animate-pulse">EMD INVENTORY</h2>
+    <p class="text-slate-400 text-sm mt-2">Loading Dashboard...</p>
+</div>
+
+<!-- Processing Overlay -->
+<div id="processing-overlay" class="fixed inset-0 z-[90] modal-backdrop hidden flex items-center justify-center text-white">
+    <div class="text-center">
+        <div class="loader-ring mb-4" style="filter: brightness(0) invert(1);"></div>
+        <h3 class="text-xl font-semibold">Processing Request...</h3>
+        <p class="text-slate-300 text-sm mt-2">Please wait while we save your data.</p>
+    </div>
+</div>
+
+<!-- Global Audio Player -->
+<audio id="global-audio-player" crossorigin="anonymous" preload="auto" style="display: none;"></audio>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 transform -translate-x-full md:translate-x-0 flex flex-col shadow-2xl md:shadow-none" role="navigation" aria-label="Main navigation">
+    <div class="h-20 flex items-center px-8 border-b border-slate-100 bg-gradient-to-r from-brand-50 to-white">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
+                <i class="fa-solid fa-cube text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-800 leading-tight">EMD</h1>
+                <p class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Inventory</p>
+            </div>
+        </div>
+    </div>
+    <div class="px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+        <div class="flex items-center gap-3">
+            <img id="sidebar-avatar" src="" alt="User Avatar" class="w-11 h-11 rounded-full border-2 border-brand-200 shadow-sm object-cover">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-800 truncate" id="current-user-name">Boison</p>
+                <p class="text-xs text-slate-500 truncate" id="current-user-role">Main Admin</p>
+            </div>
+            <button onclick="confirmLogout()" class="text-slate-400 hover:text-red-500 transition p-2 hover:bg-red-50 rounded-lg" aria-label="Logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </div>
+    <nav class="flex-1 py-6 px-4 space-y-1 overflow-y-auto">
+        <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Main Menu</p>
+        <a href="#" onclick="switchView('dashboard'); return false;" id="nav-dashboard" class="nav-item active flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-chart-pie w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            Dashboard
+        </a>
+        <a href="#" onclick="switchView('new-order'); return false;" id="nav-new-order" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-cart-plus w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            New Order
+        </a>
+        <a href="#" onclick="switchView('track-orders'); return false;" id="nav-track-orders" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-truck-fast w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            Track Orders
+        </a>
+        <a href="#" onclick="switchView('history'); return false;" id="nav-history" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-clock-rotate-left w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            Order History
+        </a>
+        <a href="#" onclick="switchView('customers'); return false;" id="nav-customers" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-users w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            Customers
+        </a>
+        <a href="#" onclick="switchView('activities'); return false;" id="nav-activities" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-calendar-check w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            Activities
+        </a>
+        <a href="#" onclick="switchView('calculator'); return false;" id="nav-calculator" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-calculator w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            Calculator
+        </a>
+        <a href="#" onclick="switchView('daily-report'); return false;" id="nav-daily-report" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-envelope-open-text w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            Daily Report
+        </a>
+        <a href="#" onclick="switchView('report-tracker'); return false;" id="nav-report-tracker" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-clipboard-list w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            Report Tracker
+        </a>
+        <a href="#" onclick="switchView('activity-log'); return false;" id="nav-activity-log" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-list-check w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            Activity Log
+        </a>
+        <a href="#" onclick="switchView('backup'); return false;" id="nav-backup" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+            <i class="fa-solid fa-database w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+            Backup & Restore
+        </a>
+        <div id="boison-admin-section" class="pt-6 mt-6 border-t border-slate-100 hidden">
+            <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Admin Controls</p>
+            <a href="#" onclick="switchView('user-management'); return false;" id="nav-user-management" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+                <i class="fa-solid fa-users-gear w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+                User Management
+            </a>
+            <a href="#" onclick="switchView('product-management'); return false;" id="nav-product-management" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+                <i class="fa-solid fa-box w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+                Product Manager
+            </a>
+            <a href="#" onclick="switchView('music-management'); return false;" id="nav-music-management" class="nav-item flex items-center px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors group">
+                <i class="fa-solid fa-music w-6 text-center mr-3 text-slate-400 group-hover:text-brand-500 transition-colors"></i>
+                Music Manager
+            </a>
+        </div>
+    </nav>
+</aside>
+
+<div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden md:hidden opacity-0 transition-opacity"></div>
+
+<main class="flex-1 flex flex-col h-screen overflow-hidden relative md:ml-72 transition-all duration-300">
+    <header class="h-20 glass border-b border-slate-200/60 flex items-center justify-between px-6 z-20 sticky top-0">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="md:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            <div>
+                <h2 id="page-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
+                <p class="text-xs text-slate-500 hidden sm:block">Overview of your inventory and sales</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex flex-col items-end">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Accra Time (GMT)</span>
+                <div id="ghana-clock" class="text-lg font-mono font-bold text-brand-600">00:00:00</div>
+            </div>
+            <!-- Music Player in Header -->
+            <div class="hidden md:flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-2 rounded-full border border-purple-200 shadow-sm">
+                <span class="text-xs font-semibold text-slate-600 truncate max-w-32" id="current-track-name">🎵 Music</span>
+                <button onclick="previousMusic()" class="p-1.5 text-slate-500 hover:text-purple-600 transition" aria-label="Previous track">
+                    <i class="fa-solid fa-step-backward text-xs"></i>
+                </button>
+                <button id="music-play-btn" onclick="handleMusicPlayBtn()" class="p-1.5 text-purple-600 hover:text-purple-700 transition" aria-label="Play/Pause">
+                    <i class="fa-solid fa-play text-sm"></i>
+                </button>
+                <button onclick="nextMusic()" class="p-1.5 text-slate-500 hover:text-purple-600 transition" aria-label="Next track">
+                    <i class="fa-solid fa-step-forward text-xs"></i>
+                </button>
+                <button onclick="stopMusic()" class="p-1.5 text-slate-500 hover:text-red-600 transition" aria-label="Stop">
+                    <i class="fa-solid fa-stop text-xs"></i>
+                </button>
+                <input type="range" id="music-volume" min="0" max="100" value="70" class="w-16 h-1" aria-label="Volume control">
+            </div>
+            <button onclick="openProfileModal()" class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-600 hover:border-brand-200 transition shadow-sm" aria-label="Open profile">
+                <i class="fa-solid fa-user"></i>
+            </button>
+        </div>
+    </header>
+    <div class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth" id="main-container">
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="space-y-8 animate-fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-brand-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Total Revenue</p>
+                                <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mt-1" id="dash-total-revenue">â‚µ0.00</h3>
+                                <p class="text-xs text-slate-400 mt-1" id="dash-total-revenue-usd">$0.00</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-brand-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
+                                <i class="fa-solid fa-sack-dollar text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-purple-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Total Orders</p>
+                                <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mt-1" id="dash-total-orders">0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-purple-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
+                                <i class="fa-solid fa-file-invoice text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-orange-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Products Sold</p>
+                                <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mt-1" id="dash-products-sold">0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
+                                <i class="fa-solid fa-boxes-stacked text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-pink-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Avg. Order Value</p>
+                                <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mt-1" id="dash-avg-order">â‚µ0.00</h3>
+                                <p class="text-xs text-slate-400 mt-1" id="dash-avg-order-usd">$0.00</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-pink-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/30">
+                                <i class="fa-solid fa-calculator text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-green-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Total Products</p>
+                                <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mt-1" id="dash-total-products">0</h3>
+                                <p class="text-xs text-slate-400 mt-1">Product Types</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center text-white shadow-lg shadow-green-500/30">
+                                <i class="fa-solid fa-cubes text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-cyan-50 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Total Quantity</p>
+                                <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mt-1" id="dash-total-quantity">0</h3>
+                                <p class="text-xs text-slate-400 mt-1">Units in Stock</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-cyan-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+                                <i class="fa-solid fa-layer-group text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-brand-500"></i> Revenue Trends
+                    </h3>
+                    <canvas id="revenue-chart" height="200"></canvas>
+                </div>
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-accent-500"></i> Product Distribution
+                    </h3>
+                    <canvas id="product-chart" height="200"></canvas>
+                </div>
+            </div>
+            <div id="low-stock-alerts" class="hidden glass-card rounded-2xl p-6 shadow-sm border-l-4 border-l-red-500">
+                <h3 class="text-lg font-bold text-red-600 flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-triangle-exclamation animate-pulse"></i> Low Stock Alerts
+                </h3>
+                <div id="low-stock-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+            <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-brand-500"></i> Recent Activity
+                    </h3>
+                    <button onclick="switchView('history'); return false;" class="text-sm text-brand-600 font-semibold hover:text-brand-700 hover:underline">View All</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" role="table">
+                        <thead>
+                            <tr class="text-xs text-slate-400 uppercase border-b border-slate-100">
+                                <th class="py-3 font-semibold pl-4" scope="col">Order ID</th>
+                                <th class="py-3 font-semibold" scope="col">Customer</th>
+                                <th class="py-3 font-semibold" scope="col">Date & Time</th>
+                                <th class="py-3 font-semibold" scope="col">Created By</th>
+                                <th class="py-3 font-semibold text-right pr-4" scope="col">Total</th>
+                                <th class="py-3 font-semibold text-center" scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-orders-body" class="text-sm text-slate-600"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW ORDER VIEW -->
+        <div id="view-new-order" class="hidden animate-fade-in h-full">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <span class="w-1 h-6 bg-brand-500 rounded-full"></span>
+                            Order Details <span class="text-red-500 text-sm">*</span> Required
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Order Date <span class="text-red-500">*</span></label>
+                                <input type="date" id="order-date" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-white shadow-sm">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Action Type <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <select id="action-type" onchange="onActionTypeChange()" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all appearance-none bg-white shadow-sm pr-10">
+                                        <option value="">Select action...</option>
+                                        <option value="repurchase">Repurchase - Existing Customer</option>
+                                        <option value="new-registration">New Registration - First Time</option>
+                                    </select>
+                                    <div class="absolute right-3 top-3.5 text-slate-400 pointer-events-none">
+                                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Customer Name <span class="text-red-500">*</span></label>
+                                <input type="text" id="customer-name" required placeholder="e.g. John Doe" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-white shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Destination <span class="text-red-500">*</span></label>
+                                <input type="text" id="customer-destination" required placeholder="e.g. Accra, Osu" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-white shadow-sm">
+                            </div>
+                            <div id="registration-package-div" class="hidden md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Registration Package <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <select id="registration-package" onchange="onRegistrationPackageChange()" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all appearance-none bg-white shadow-sm pr-10">
+                                        <option value="">Select package...</option>
+                                        <option value="starter">🌟 Starter Pack - $20 (₵200)</option>
+                                        <option value="chairman">👔 Chairman - $40 (₵400)</option>
+                                        <option value="director">🎯 Director - $80 (₵800)</option>
+                                        <option value="executive">💼 Executive - $240 (₵2,400)</option>
+                                        <option value="emperor">👑 Emperor - $480 (₵4,800)</option>
+                                        <option value="vip">💎 VIP - $1,440 (₵14,400)</option>
+                                        <option value="president">🏆 President - $2,880 (₵28,800)</option>
+                                    </select>
+                                    <div class="absolute right-3 top-3.5 text-slate-400 pointer-events-none">
+                                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <span class="w-1 h-6 bg-accent-500 rounded-full"></span>
+                            Add Products
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                            <div class="md:col-span-6">
+                                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Product</label>
+                                <div class="relative">
+                                    <select id="productSelect" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all appearance-none bg-white shadow-sm pr-10">
+                                        <option value="">Select a product...</option>
+                                    </select>
+                                    <div class="absolute right-3 top-3.5 text-slate-400 pointer-events-none">
+                                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Price</label>
+                                <input type="text" id="product-price-display" readonly class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 font-medium cursor-not-allowed shadow-sm text-xs">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Qty</label>
+                                <input type="number" id="product-quantity" min="1" value="1" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-white shadow-sm">
+                            </div>
+                        </div>
+                        <div class="mt-6 flex justify-end">
+                            <button onclick="addToOrderList()" class="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-brand-500/30 transform hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Add Item
+                            </button>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <span class="w-1 h-6 bg-green-500 rounded-full"></span>
+                            Registration Details
+                        </h3>
+                        <div id="registration-package-info" class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 space-y-4 hidden">
+                            <div class="flex items-center justify-between pb-4 border-b border-green-200">
+                                <div>
+                                    <p class="font-semibold text-slate-800" id="package-name">Starter Pack</p>
+                                    <p class="text-xs text-slate-500 mt-1" id="package-description">Perfect for beginners</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-2xl font-bold text-green-600" id="package-price-ghs">₵200</p>
+                                    <p class="text-sm text-green-500" id="package-price-usd">$20</p>
+                                </div>
+                            </div>
+                            <!-- Package Breakdown Section -->
+                            <div id="package-breakdown-section" class="space-y-3 hidden">
+                                <p class="text-xs font-bold text-slate-600 uppercase tracking-wider">Package Breakdown</p>
+                                <!-- Product Claims -->
+                                <div class="bg-white rounded-lg p-4 border-l-4 border-l-blue-500">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-box text-blue-500 text-lg"></i>
+                                            <span class="font-semibold text-slate-700">Product Claims</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-bold text-blue-600" id="breakdown-products-ghs">₵175</div>
+                                            <div class="text-xs text-blue-500" id="breakdown-products-usd">$17.50</div>
+                                        </div>
+                                    </div>
+                                    <div class="w-full bg-blue-100 rounded-full h-2">
+                                        <div class="bg-blue-500 h-2 rounded-full" style="width: 87.5%"></div>
+                                    </div>
+                                </div>
+                                <!-- Registration Charge -->
+                                <div class="bg-white rounded-lg p-4 border-l-4 border-l-orange-500">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-certificate text-orange-500 text-lg"></i>
+                                            <span class="font-semibold text-slate-700">Registration Charge</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-bold text-orange-600" id="breakdown-registration-ghs">₵25</div>
+                                            <div class="text-xs text-orange-500" id="breakdown-registration-usd">$2.50</div>
+                                        </div>
+                                    </div>
+                                    <div class="w-full bg-orange-100 rounded-full h-2">
+                                        <div class="bg-orange-500 h-2 rounded-full" style="width: 12.5%"></div>
+                                    </div>
+                                </div>
+                                <!-- Separator -->
+                                <div class="border-t border-slate-200 pt-3 mt-3">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-equals text-slate-400 text-lg"></i>
+                                            <span class="font-bold text-slate-800">Total Package Value</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-bold text-lg text-slate-800" id="breakdown-total-ghs">₵200</div>
+                                            <div class="text-xs text-slate-500" id="breakdown-total-usd">$20</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-5">
+                    <div class="glass-card rounded-2xl p-6 shadow-xl sticky top-24 flex flex-col h-full max-h-[calc(100vh-8rem)] border-t-4 border-t-brand-500">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-receipt text-brand-500"></i> Order Summary
+                            </span>
+                            <span id="item-count-badge" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded-md">0 Items</span>
+                        </h3>
+                        <div class="flex-1 overflow-y-auto mb-4 space-y-3 pr-2" id="order-items-container"></div>
+                        <div class="border-t border-slate-200 pt-4 space-y-2 bg-slate-50/50 p-4 rounded-xl">
+                            <div class="flex justify-between text-slate-500 text-sm">
+                                <span>Subtotal</span>
+                                <div class="text-right">
+                                    <div id="summary-subtotal-ghs" class="font-medium">â‚µ0.00</div>
+                                    <div id="summary-subtotal-usd" class="text-xs text-slate-400">$0.00</div>
+                                </div>
+                            </div>
+                            <div id="registration-fee-row" class="hidden flex justify-between text-green-600 text-sm bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg border border-green-200">
+                                <div>
+                                    <span id="registration-fee-label" class="font-semibold flex items-center gap-2">
+                                        <i class="fa-solid fa-certificate text-green-600"></i>
+                                        <span id="summary-reg-package-name">Registration Package</span>
+                                    </span>
+                                    <p class="text-xs text-green-500 mt-1">Uniform registration charge</p>
+                                </div>
+                                <div class="text-right font-semibold">
+                                    <div id="summary-reg-fee-ghs" class="text-green-700 font-bold">₵200</div>
+                                    <div id="summary-reg-fee-usd" class="text-xs text-green-600">$20</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between text-lg font-bold text-slate-800 pt-2 border-t border-dashed border-slate-300">
+                                <span>Grand Total</span>
+                                <div class="text-right">
+                                    <div id="summary-total-ghs" class="text-brand-600">â‚µ0.00</div>
+                                    <div id="summary-total-usd" class="text-xs text-slate-400">$0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="saveOrder()" class="w-full mt-6 bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold shadow-xl transform hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 group">
+                            <span>Confirm & Save Order</span>
+                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRACK ORDERS VIEW -->
+        <div id="view-track-orders" class="hidden animate-fade-in">
+            <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-truck-fast text-brand-500"></i> Track Orders & Inventory
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="openAddProductModal()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Add New Product
+                        </button>
+                        <button onclick="checkLowStock(true)" class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600 transition flex items-center gap-2">
+                            <i class="fa-solid fa-bell"></i> Check Stock
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto mb-8">
+                    <h4 class="font-bold text-slate-700 mb-4">Current Inventory Levels</h4>
+                    <table class="w-full text-left border-collapse" role="table">
+                        <thead>
+                            <tr class="text-xs text-slate-400 uppercase border-b border-slate-100 bg-slate-50/50">
+                                <th class="py-3 px-4 font-semibold" scope="col">Product Name</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Price (GHS)</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Price (USD)</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Stock Level</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Status</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-body" class="text-sm text-slate-600"></tbody>
+                    </table>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-700 mb-4">All Orders Tracking</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse" role="table">
+                            <thead>
+                                <tr class="text-xs text-slate-400 uppercase border-b border-slate-100 bg-slate-50/50">
+                                    <th class="py-3 px-4 font-semibold" scope="col">Order ID</th>
+                                    <th class="py-3 px-4 font-semibold" scope="col">Date & Time</th>
+                                    <th class="py-3 px-4 font-semibold" scope="col">Customer</th>
+                                    <th class="py-3 px-4 font-semibold" scope="col">Created By</th>
+                                    <th class="py-3 px-4 font-semibold" scope="col">Items</th>
+                                    <th class="py-3 px-4 font-semibold text-right" scope="col">Total</th>
+                                    <th class="py-3 px-4 font-semibold text-center" scope="col">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="track-orders-body" class="text-sm text-slate-600"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CUSTOMERS VIEW -->
+        <div id="view-customers" class="hidden animate-fade-in">
+            <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-users text-brand-500"></i> Customer Management
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="downloadCustomerTemplate()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-300 transition flex items-center gap-2">
+                            <i class="fa-solid fa-download"></i> Download Template
+                        </button>
+                        <button onclick="document.getElementById('customer-bulk-upload').click()" class="px-4 py-2 bg-accent-500 text-white rounded-lg text-sm font-semibold hover:bg-accent-600 transition flex items-center gap-2">
+                            <i class="fa-solid fa-upload"></i> Bulk Upload
+                        </button>
+                        <input type="file" id="customer-bulk-upload" accept=".xlsx,.xls,.csv" class="hidden" onchange="uploadCustomers(event)">
+                        <button onclick="openAddCustomerModal()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus"></i> Add Customer
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" role="table">
+                        <thead>
+                            <tr class="text-xs text-slate-400 uppercase border-b border-slate-100 bg-slate-50/50">
+                                <th class="py-3 px-4 font-semibold" scope="col">Name</th>
+                                <th class="py-3 px-4 font-semibold" scope="col">Phone Number</th>
+                                <th class="py-3 px-4 font-semibold" scope="col">Added By</th>
+                                <th class="py-3 px-4 font-semibold" scope="col">Date Added</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Status</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-body" class="text-sm text-slate-600"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORY VIEW -->
+        <div id="view-history" class="hidden animate-fade-in">
+            <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h3 class="text-lg font-bold text-slate-800">Order History</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <input type="date" id="filter-date-from" class="px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                        <input type="date" id="filter-date-to" class="px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                        <button onclick="applyDateFilter()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold">Filter</button>
+                        <button onclick="clearDateFilter()" class="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold">Reset</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" role="table">
+                        <thead>
+                            <tr class="text-xs text-slate-400 uppercase border-b border-slate-100 bg-slate-50/50">
+                                <th class="py-3 px-4 font-semibold" scope="col">ID</th>
+                                <th class="py-3 px-4 font-semibold" scope="col">Date & Time</th>
+                                <th class="py-3 px-4 font-semibold" scope="col">Customer</th>
+                                <th class="py-3 px-4 font-semibold" scope="col">Destination</th>
+                                <th class="py-3 px-4 font-semibold" scope="col">Created By</th>
+                                <th class="py-3 px-4 font-semibold text-right" scope="col">Total</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body" class="text-sm text-slate-600"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAILY REPORT VIEW -->
+        <div id="view-daily-report" class="hidden animate-fade-in">
+            <div class="max-w-3xl mx-auto">
+                <div class="glass-card rounded-2xl p-8 shadow-sm">
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-envelope-open-text text-4xl text-brand-600"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-2">Send Daily Report</h3>
+                        <p class="text-slate-500">Send a comprehensive order report to admin</p>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Select Admin Recipient</label>
+                            <div class="grid grid-cols-1 gap-4">
+                                <button onclick="selectReportRecipient('boison')" id="recipient-boison" class="p-4 rounded-xl border-2 border-slate-200 hover:border-brand-500 transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center">
+                                            <i class="fa-solid fa-crown text-brand-600"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <p class="font-bold text-slate-800">Boison</p>
+                                            <p class="text-xs text-slate-500">Main Admin</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-info-circle mr-1"></i> Afoga can only send reports to Boison</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Admin Username</label>
+                            <input type="text" id="report-username" readonly class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium">
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-6">
+                            <h4 class="font-bold text-slate-800 mb-4">Report Summary</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white rounded-lg p-4">
+                                    <p class="text-xs text-slate-500">Total Orders</p>
+                                    <p class="text-2xl font-bold text-brand-600" id="report-total-orders">0</p>
+                                </div>
+                                <div class="bg-white rounded-lg p-4">
+                                    <p class="text-xs text-slate-500">Total Revenue</p>
+                                    <p class="text-2xl font-bold text-brand-600" id="report-total-revenue">â‚µ0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="sendDailyReport()" id="send-report-btn" class="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-xl font-bold shadow-lg shadow-brand-500/30 transform hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Send Report</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORT TRACKER VIEW (Boison Only) -->
+        <div id="view-report-tracker" class="hidden animate-fade-in">
+            <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-list text-brand-500"></i> Report Tracker
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" role="table">
+                        <thead>
+                            <tr class="text-xs text-slate-400 uppercase border-b border-slate-100 bg-slate-50/50">
+                                <th class="py-3 px-4 font-semibold" scope="col">Report ID</th>
+                                <th class="py-3 px-4 font-semibold" scope="col">Sent By</th>
+                                <th class="py-3 px-4 font-semibold" scope="col">Sent To</th>
+                                <th class="py-3 px-4 font-semibold" scope="col">Date & Time</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Total Orders</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Total Revenue</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-tracker-body" class="text-sm text-slate-600"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIVITIES VIEW -->
+        <div id="view-activities" class="hidden animate-fade-in">
+            <div class="space-y-6">
+                <!-- Header with Create Button -->
+                <div class="flex justify-between items-center">
+                    <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-blue-500"></i> Activities
+                    </h1>
+                    <button onclick="openActivityModal()" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
+                        <i class="fa-solid fa-plus mr-2"></i> New Activity
+                    </button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-card rounded-xl p-4 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Activities</p>
+                                <p class="text-2xl font-bold text-blue-900" id="total-activities-count">0</p>
+                            </div>
+                            <i class="fa-solid fa-calendar-check text-blue-500 text-3xl opacity-20"></i>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-xl p-4 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">This Month</p>
+                                <p class="text-2xl font-bold text-green-900" id="monthly-activities-count">0</p>
+                            </div>
+                            <i class="fa-solid fa-calendar text-green-500 text-3xl opacity-20"></i>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-xl p-4 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">This Week</p>
+                                <p class="text-2xl font-bold text-purple-900" id="weekly-activities-count">0</p>
+                            </div>
+                            <i class="fa-solid fa-clock text-purple-500 text-3xl opacity-20"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Period Filter -->
+                <div class="glass-card rounded-xl p-4 flex gap-3 flex-wrap">
+                    <button data-period-btn onclick="switchActivityPeriod('all')" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold transition-all">All Time</button>
+                    <button data-period-btn onclick="switchActivityPeriod('monthly')" class="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg font-semibold hover:bg-blue-200 transition-all">Monthly</button>
+                    <button data-period-btn onclick="switchActivityPeriod('weekly')" class="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg font-semibold hover:bg-blue-200 transition-all">Weekly</button>
+                    <button data-period-btn onclick="switchActivityPeriod('daily')" class="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg font-semibold hover:bg-blue-200 transition-all">Daily</button>
+                </div>
+
+                <!-- Activities Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="activities-list"></div>
+            </div>
+        </div>
+
+        <!-- CALCULATOR VIEW -->
+        <div id="view-calculator" class="hidden animate-fade-in">
+            <div class="space-y-6">
+                <!-- Header -->
+                <div class="flex justify-between items-center">
+                    <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-brand-500"></i> Commission Calculator
+                    </h1>
+                    <p class="text-sm text-slate-500">Calculate bonuses and commissions in real-time</p>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <div class="glass-card rounded-2xl p-2 flex gap-2 flex-wrap bg-slate-50">
+                    <button onclick="switchCalculatorTab('repurchase')" data-calc-tab="repurchase" class="calc-tab-btn flex-1 px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold transition-all shadow-md">
+                        <i class="fa-solid fa-shopping-cart mr-2"></i> Repurchase (20%)
+                    </button>
+                    <button onclick="switchCalculatorTab('referral')" data-calc-tab="referral" class="calc-tab-btn flex-1 px-6 py-3 bg-slate-200 text-slate-600 rounded-xl font-semibold hover:bg-slate-300 transition-all">
+                        <i class="fa-solid fa-users mr-2"></i> Referral (25%)
+                    </button>
+                    <button onclick="switchCalculatorTab('matching')" data-calc-tab="matching" class="calc-tab-btn flex-1 px-6 py-3 bg-slate-200 text-slate-600 rounded-xl font-semibold hover:bg-slate-300 transition-all">
+                        <i class="fa-solid fa-scale-balanced mr-2"></i> Matching (15%)
+                    </button>
+                </div>
+
+                <!-- REPURCHASE TAB -->
+                <div id="calc-tab-repurchase" class="calc-tab-content">
+                    <div class="glass-card rounded-2xl p-8 shadow-sm">
+                        <div class="max-w-2xl mx-auto">
+                            <div class="text-center mb-8">
+                                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fa-solid fa-shopping-cart text-4xl text-blue-500"></i>
+                                </div>
+                                <h2 class="text-2xl font-bold text-slate-800">Repurchase Bonus</h2>
+                                <p class="text-slate-500 mt-2">Get 20% cashback on your repurchase amount</p>
+                            </div>
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                                        <i class="fa-solid fa-dollar-sign text-blue-500 mr-2"></i>Enter Repurchase Amount (USD)
+                                    </label>
+                                    <input type="number" id="repurchase-amount" placeholder="e.g., 100" min="0" step="0.01" oninput="calculateRepurchaseBonus()" class="w-full px-6 py-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg transition-all shadow-sm" />
+                                </div>
+                                <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-8 space-y-4 min-h-48 flex flex-col justify-center">
+                                    <div class="text-center">
+                                        <p class="text-slate-600 text-sm font-semibold uppercase tracking-wide">You Will Receive</p>
+                                        <p class="text-5xl font-bold text-blue-600 my-2" id="repurchase-bonus-display">$0.00</p>
+                                        <p class="text-slate-500 text-sm">as cashback reward</p>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-blue-200">
+                                        <div class="text-center">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide">Amount Spent</p>
+                                            <p class="text-2xl font-bold text-slate-800" id="repurchase-amount-display">$0.00</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide">Bonus Rate</p>
+                                            <p class="text-2xl font-bold text-blue-600">20%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REFERRAL TAB -->
+                <div id="calc-tab-referral" class="calc-tab-content hidden">
+                    <div class="glass-card rounded-2xl p-8 shadow-sm">
+                        <div class="max-w-2xl mx-auto">
+                            <div class="text-center mb-8">
+                                <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fa-solid fa-users text-4xl text-purple-500"></i>
+                                </div>
+                                <h2 class="text-2xl font-bold text-slate-800">Referral Bonus</h2>
+                                <p class="text-slate-500 mt-2">Earn 25% from every referral you make</p>
+                            </div>
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                                        <i class="fa-solid fa-dollar-sign text-purple-500 mr-2"></i>Enter Total Referral Amount (USD)
+                                    </label>
+                                    <input type="number" id="referral-amount" placeholder="e.g., 500" min="0" step="0.01" oninput="calculateReferralBonus()" class="w-full px-6 py-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg transition-all shadow-sm" />
+                                </div>
+                                <div class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-xl p-8 space-y-4 min-h-48 flex flex-col justify-center">
+                                    <div class="text-center">
+                                        <p class="text-slate-600 text-sm font-semibold uppercase tracking-wide">Your Referral Bonus</p>
+                                        <p class="text-5xl font-bold text-purple-600 my-2" id="referral-bonus-display">$0.00</p>
+                                        <p class="text-slate-500 text-sm">earned from referrals</p>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-purple-200">
+                                        <div class="text-center">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide">Total Sales</p>
+                                            <p class="text-2xl font-bold text-slate-800" id="referral-amount-display">$0.00</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide">Commission Rate</p>
+                                            <p class="text-2xl font-bold text-purple-600">25%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MATCHING BONUS TAB -->
+                <div id="calc-tab-matching" class="calc-tab-content hidden">
+                    <div class="glass-card rounded-2xl p-8 shadow-sm">
+                        <div class="max-w-3xl mx-auto">
+                            <div class="text-center mb-8">
+                                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fa-solid fa-scale-balanced text-4xl text-green-500"></i>
+                                </div>
+                                <h2 class="text-2xl font-bold text-slate-800">Matching Bonus</h2>
+                                <p class="text-slate-500 mt-2">15% bonus based on uniform matched amounts (Minimum $20 per side)</p>
+                            </div>
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">
+                                            <i class="fa-solid fa-arrow-right text-green-500 mr-2"></i>Right Side Amount (USD)
+                                        </label>
+                                        <input type="number" id="matching-right" placeholder="Min $20" min="20" step="0.01" oninput="calculateMatchingBonus()" class="w-full px-6 py-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg transition-all shadow-sm" />
+                                        <p class="text-xs text-slate-500 mt-2">Minimum: $20</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">
+                                            <i class="fa-solid fa-arrow-left text-orange-500 mr-2"></i>Left Side Amount (USD)
+                                        </label>
+                                        <input type="number" id="matching-left" placeholder="Min $20" min="20" step="0.01" oninput="calculateMatchingBonus()" class="w-full px-6 py-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-lg transition-all shadow-sm" />
+                                        <p class="text-xs text-slate-500 mt-2">Minimum: $20</p>
+                                    </div>
+                                </div>
+                                <div class="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-8 space-y-4">
+                                    <div class="grid grid-cols-3 gap-4 mb-6">
+                                        <div class="text-center bg-white rounded-lg p-4 border border-green-200">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide font-semibold">Right Amount</p>
+                                            <p class="text-2xl font-bold text-slate-800 mt-2" id="matching-right-display">$0.00</p>
+                                        </div>
+                                        <div class="text-center bg-gradient-to-b from-green-200 to-green-100 rounded-lg p-4 border-2 border-green-400 flex items-center justify-center flex-col">
+                                            <i class="fa-solid fa-check-circle text-green-600 text-3xl mb-2"></i>
+                                            <p class="text-xs text-green-700 font-bold uppercase">Equal Match</p>
+                                        </div>
+                                        <div class="text-center bg-white rounded-lg p-4 border border-green-200">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide font-semibold">Left Amount</p>
+                                            <p class="text-2xl font-bold text-slate-800 mt-2" id="matching-left-display">$0.00</p>
+                                        </div>
+                                    </div>
+                                    <div class="border-t-2 border-green-200 pt-6">
+                                        <div class="text-center mb-6">
+                                            <p class="text-slate-600 text-sm font-semibold uppercase tracking-wide">Your Matching Bonus</p>
+                                            <p class="text-5xl font-bold text-green-600 my-2" id="matching-bonus-display">$0.00</p>
+                                            <p class="text-slate-500 text-sm">15% of matched amount</p>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-green-200">
+                                            <div class="text-center">
+                                                <p class="text-xs text-slate-600 uppercase tracking-wide">Uniform Match</p>
+                                                <p class="text-2xl font-bold text-slate-800" id="matching-uniform-display">$0.00</p>
+                                            </div>
+                                            <div class="text-center">
+                                                <p class="text-xs text-slate-600 uppercase tracking-wide">Bonus Rate</p>
+                                                <p class="text-2xl font-bold text-green-600">15%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIVITY LOG VIEW -->
+        <div id="view-activity-log" class="hidden animate-fade-in">
+            <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-brand-500"></i> Activity Log
+                </h3>
+                <div class="activity-timeline space-y-4" id="activity-log-container"></div>
+            </div>
+        </div>
+
+        <!-- USER MANAGEMENT VIEW (Boison Only) -->
+        <div id="view-user-management" class="hidden animate-fade-in">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="glass-card rounded-2xl p-8 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-users-gear text-brand-500"></i> User Management
+                        </h3>
+                        <button onclick="openCreateUserModal()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus"></i> Create New User
+                        </button>
+                    </div>
+                    <!-- Afoga User Card -->
+                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200 mb-4">
+                        <div class="flex items-center gap-6">
+                            <img id="user-mgmt-afoga-avatar" src="" alt="Afoga Avatar" class="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h4 class="text-lg font-bold text-slate-800">Afoga</h4>
+                                    <span class="permission-badge limited">Admin</span>
+                                </div>
+                                <p class="text-sm text-slate-600 mb-4">Second Administrator with limited permissions</p>
+                                <div class="flex gap-3">
+                                    <button onclick="resetAfogaPassword()" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 transition">
+                                        <i class="fa-solid fa-key mr-1"></i> Reset Password
+                                    </button>
+                                    <button onclick="resetAfogaAvatar()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-300 transition">
+                                        <i class="fa-solid fa-image mr-1"></i> Reset Avatar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Additional Users -->
+                    <div id="additional-users-container" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRODUCT MANAGEMENT VIEW (Boison Only) -->
+        <div id="view-product-management" class="hidden animate-fade-in">
+            <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-box text-brand-500"></i> Product Manager
+                </h3>
+                
+                <!-- Product Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="product-stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium uppercase">Total Products</p>
+                                <p class="text-2xl font-bold text-slate-800 mt-1" id="pm-total-products">0</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                                <i class="fa-solid fa-cubes text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium uppercase">Total Quantity</p>
+                                <p class="text-2xl font-bold text-slate-800 mt-1" id="pm-total-quantity">0</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-cyan-100 flex items-center justify-center">
+                                <i class="fa-solid fa-layer-group text-cyan-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium uppercase">Low Stock</p>
+                                <p class="text-2xl font-bold text-slate-800 mt-1" id="pm-low-stock">0</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                                <i class="fa-solid fa-triangle-exclamation text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium uppercase">Avg. Price</p>
+                                <p class="text-2xl font-bold text-slate-800 mt-1" id="pm-avg-price">â‚µ0</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                                <i class="fa-solid fa-tag text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filter Section -->
+                <div class="bg-slate-50 rounded-xl p-4 mb-6">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Filter by Price Range</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="price-filter-min" placeholder="Min Price" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-500 text-sm">
+                                <span class="text-slate-400">-</span>
+                                <input type="number" id="price-filter-max" placeholder="Max Price" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-500 text-sm">
+                                <button onclick="applyPriceFilter()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition">
+                                    <i class="fa-solid fa-filter mr-1"></i> Filter
+                                </button>
+                                <button onclick="clearPriceFilter()" class="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-300 transition">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <button onclick="openAddProductModal()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Add Product
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" role="table">
+                        <thead>
+                            <tr class="text-xs text-slate-400 uppercase border-b border-slate-100 bg-slate-50/50">
+                                <th class="py-3 px-4 font-semibold" scope="col">Product Name</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Price (GHS)</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Price (USD)</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Stock</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Status</th>
+                                <th class="py-3 px-4 font-semibold text-center" scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-management-body" class="text-sm text-slate-600"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- MUSIC MANAGEMENT VIEW (Boison Only) -->
+        <div id="view-music-management" class="hidden animate-fade-in">
+            <div class="max-w-5xl mx-auto">
+                <div class="glass-card rounded-2xl p-8 shadow-sm">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                            <i class="fa-solid fa-music text-purple-500 text-3xl"></i> Music Manager
+                        </h3>
+                        <div class="flex gap-2">
+                            <button onclick="document.getElementById('music-file-input').click()" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-lg transition flex items-center gap-2">
+                                <i class="fa-solid fa-upload"></i> Upload Music
+                            </button>
+                            <button onclick="debugMusic()" class="px-4 py-3 bg-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-300 transition flex items-center gap-2" title="Debug music system (check console)">
+                                <i class="fa-solid fa-bug"></i> Debug
+                            </button>
+                        </div>
+                        <input type="file" id="music-file-input" accept="audio/*" onchange="uploadMusicFile()" style="display: none;" multiple>
+                    </div>
+
+                    <!-- Music Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-purple-600 uppercase">Total Tracks</p>
+                                    <p class="text-3xl font-bold text-purple-900 mt-2" id="total-tracks">0</p>
+                                </div>
+                                <i class="fa-solid fa-music text-purple-300 text-4xl"></i>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-6 border border-pink-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-pink-600 uppercase">Playing</p>
+                                    <p class="text-lg font-bold text-pink-900 mt-2" id="current-playing-track">None</p>
+                                </div>
+                                <i class="fa-solid fa-play text-pink-300 text-4xl"></i>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-6 border border-indigo-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-indigo-600 uppercase">Auto Play</p>
+                                    <p class="text-lg font-bold text-indigo-900 mt-2">Enabled</p>
+                                </div>
+                                <i class="fa-solid fa-circle-play text-indigo-300 text-4xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playlist Section -->
+                    <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                        <h4 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-list-ul text-slate-600"></i> Playlist
+                        </h4>
+                        <div id="music-playlist-container" class="space-y-3">
+                            <p class="text-center text-slate-400 py-12">No music files uploaded. Upload your first track!</p>
+                        </div>
+                    </div>
+
+                    <!-- Player Controls Info -->
+                    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+                        <div class="flex gap-4">
+                            <i class="fa-solid fa-info-circle text-blue-600 text-2xl flex-shrink-0 mt-1"></i>
+                            <div>
+                                <h5 class="font-bold text-blue-900 mb-2">How it Works</h5>
+                                <ul class="text-sm text-blue-800 space-y-1">
+                                    <li>✓ Upload MP3 or other audio files to create a playlist</li>
+                                    <li>✓ Music plays automatically on all users' pages when they login</li>
+                                    <li>✓ Users can control playback with player in header (play, pause, skip, volume)</li>
+                                    <li>✓ Music continues to next track automatically when current track ends</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BACKUP & RESTORE VIEW -->
+        <div id="view-backup" class="hidden animate-fade-in">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="glass-card rounded-2xl p-8 shadow-sm text-center">
+                    <div class="w-20 h-20 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-database text-3xl text-brand-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-2">Backup & Restore</h3>
+                    <p class="text-slate-500 mb-6">Manage your order data - Export all data or restore from backup</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                            <i class="fa-solid fa-download text-3xl text-brand-500 mb-3"></i>
+                            <h4 class="font-bold text-slate-800 mb-2">Export Data</h4>
+                            <p class="text-xs text-slate-500 mb-4">Download complete system backup including orders, inventory, users, and all data</p>
+                            <button onclick="exportData()" class="w-full py-3 bg-brand-500 text-white rounded-xl font-bold mb-3 hover:bg-brand-600 transition">
+                                <i class="fa-solid fa-download mr-2"></i> Download Backup
+                            </button>
+                            <button onclick="exportAndDelete()" class="w-full py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition">
+                                <i class="fa-solid fa-trash mr-2"></i> Download & Delete All
+                            </button>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                            <i class="fa-solid fa-upload text-3xl text-accent-500 mb-3"></i>
+                            <h4 class="font-bold text-slate-800 mb-2">Import Data</h4>
+                            <p class="text-xs text-slate-500 mb-4">Restore complete system from backup file. This will replace all existing data.</p>
+                            <label class="w-full py-3 bg-accent-500 text-white rounded-xl font-bold cursor-pointer block hover:bg-accent-600 transition">
+                                <i class="fa-solid fa-upload mr-2"></i> Upload Backup
+                                <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                        <p class="text-sm text-amber-700 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Warning: Importing data will replace ALL existing data. Make sure to backup first!</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Add Product Modal -->
+<div id="add-product-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity" onclick="closeModal('add-product-modal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+            <div class="bg-gradient-to-r from-brand-500 to-accent-500 px-8 py-6 text-white">
+                <h3 class="text-xl font-bold">Add New Product</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Product Name</label>
+                    <input type="text" id="new-product-name" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Price (GHS)</label>
+                    <input type="number" id="new-product-price" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Initial Stock</label>
+                    <input type="number" id="new-product-stock" value="50" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button onclick="closeModal('add-product-modal')" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancel</button>
+                    <button onclick="saveNewProduct()" class="flex-1 py-3 bg-brand-500 text-white rounded-xl font-bold">Add Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div id="add-customer-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity" onclick="closeModal('add-customer-modal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+            <div class="bg-gradient-to-r from-brand-500 to-accent-500 px-8 py-6 text-white">
+                <h3 class="text-xl font-bold">Add New Customer</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Full Name</label>
+                    <input type="text" id="new-customer-name" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Phone Number (10 digits)</label>
+                    <input type="tel" id="new-customer-phone" maxlength="10" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500" placeholder="0XXXXXXXXX">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button onclick="closeModal('add-customer-modal')" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancel</button>
+                    <button onclick="saveNewCustomer()" class="flex-1 py-3 bg-brand-500 text-white rounded-xl font-bold">Add Customer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal (Boison Only) -->
+<div id="create-user-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity" onclick="closeModal('create-user-modal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+            <div class="bg-gradient-to-r from-brand-500 to-accent-500 px-8 py-6 text-white">
+                <h3 class="text-xl font-bold">Create New User</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Username</label>
+                    <input type="text" id="new-user-username" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Password</label>
+                    <input type="password" id="new-user-password" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Email</label>
+                    <input type="email" id="new-user-email" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button onclick="closeModal('create-user-modal')" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancel</button>
+                    <button onclick="saveNewUser()" class="flex-1 py-3 bg-brand-500 text-white rounded-xl font-bold">Create User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profile-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity" onclick="closeModal('profile-modal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slide-up">
+            <div class="bg-gradient-to-r from-brand-600 to-accent-600 px-8 py-10 text-center relative">
+                <button onclick="closeModal('profile-modal')" class="absolute top-4 right-4 text-white/70 hover:text-white transition p-2" aria-label="Close">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+                <div class="avatar-upload mx-auto mb-4" id="profile-avatar-upload">
+                    <img id="profile-avatar" src="" alt="Profile Avatar" class="w-32 h-32 rounded-full border-4 border-white shadow-2xl object-cover">
+                    <div class="overlay text-white" id="avatar-upload-overlay">
+                        <div class="text-center">
+                            <i class="fa-solid fa-camera text-2xl mb-1"></i>
+                            <p class="text-xs font-medium">Change Photo</p>
+                        </div>
+                    </div>
+                </div>
+                <input type="file" id="avatar-input" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
+                <h3 class="text-2xl font-bold text-white" id="profile-username">Boison</h3>
+                <p class="text-brand-100 text-sm" id="profile-role">Main Admin</p>
+            </div>
+            <div class="p-8 space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 rounded-xl p-4">
+                        <p class="text-xs text-slate-500 mb-1">Email</p>
+                        <p class="font-semibold text-slate-800" id="profile-email">admin@emd.com</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4">
+                        <p class="text-xs text-slate-500 mb-1">Role</p>
+                        <p class="font-semibold text-slate-800" id="profile-role-detail">Main Admin</p>
+                    </div>
+                </div>
+                <div class="border-t border-slate-100 pt-6">
+                    <h4 class="font-bold text-slate-800 mb-4">Change Password</h4>
+                    <div class="space-y-3">
+                        <input type="password" id="profile-current-password" placeholder="Current Password" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500">
+                        <input type="password" id="profile-new-password" placeholder="New Password" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500">
+                        <button onclick="changeProfilePassword()" class="w-full py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition">
+                            <i class="fa-solid fa-lock mr-2"></i> Update Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logout Confirmation Modal -->
+<div id="logout-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+            <div class="bg-gradient-to-r from-red-500 to-orange-500 px-8 py-8 text-center">
+                <div class="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                    <i class="fa-solid fa-right-from-bracket text-4xl text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Confirm Logout</h2>
+                <p class="text-red-100 text-sm mt-1">Are you sure you want to logout?</p>
+            </div>
+            <div class="p-6 flex gap-3">
+                <button onclick="closeModal('logout-modal')" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300 transition">Cancel</button>
+                <button onclick="logout()" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition">
+                    <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div id="order-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity" onclick="closeModal('order-modal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 animate-slide-up">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-800">Order Details</h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="downloadOrderPDF()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-semibold hover:bg-brand-600 transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf"></i> <span class="hidden sm:inline">PDF</span>
+                    </button>
+                    <button onclick="downloadOrderExcel()" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> <span class="hidden sm:inline">Excel</span>
+                    </button>
+                    <button onclick="closeModal('order-modal')" class="text-slate-400 hover:text-slate-600" aria-label="Close">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 max-h-[70vh] overflow-y-auto">
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-bold">Order ID</p>
+                        <p class="font-mono font-bold text-slate-700" id="modal-order-id">---</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-bold">Date & Time</p>
+                        <p class="font-medium text-slate-700" id="modal-order-datetime">---</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-bold">Customer</p>
+                        <p class="font-medium text-slate-700" id="modal-order-customer">---</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-bold">Destination</p>
+                        <p class="font-medium text-slate-700" id="modal-order-destination">---</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-bold">Created By</p>
+                        <p class="font-medium text-slate-700" id="modal-order-createdby">---</p>
+                    </div>
+                </div>
+                <h4 class="text-sm font-bold text-slate-800 mb-3 border-b pb-2">Items Purchased</h4>
+                <div class="space-y-2 mb-6" id="modal-order-items"></div>
+                <div class="bg-slate-50 p-4 rounded-xl">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-slate-600">Total (GHS)</span>
+                        <span class="text-2xl font-bold text-brand-600" id="modal-order-total-ghs">â‚µ0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-600">Total (USD)</span>
+                        <span class="text-xl font-bold text-slate-700" id="modal-order-total-usd">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Order Modal -->
+<div id="edit-order-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity" onclick="closeModal('edit-order-modal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 animate-slide-up">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-800">Edit Order Quantity</h3>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-slate-500 mb-2">Product</label>
+                    <input type="text" id="edit-product-name" readonly class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-slate-500 mb-2">New Quantity</label>
+                    <input type="number" id="edit-quantity" min="1" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal('edit-order-modal')" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold">Cancel</button>
+                    <button onclick="saveEditedQuantity()" class="flex-1 py-3 bg-brand-500 text-white rounded-xl font-bold">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Alert Modal -->
+<div id="stock-alert-modal" class="fixed inset-0 z-[70] hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 animate-slide-up stock-alert">
+            <div class="bg-red-500 px-6 py-4 text-white text-center">
+                <i class="fa-solid fa-triangle-exclamation text-4xl mb-2 animate-bounce"></i>
+                <h3 class="text-xl font-bold">Low Stock Alert!</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-600 mb-4">Products running low (5 or less):</p>
+                <div id="stock-alert-list" class="space-y-2 mb-6 max-h-48 overflow-y-auto"></div>
+                <button onclick="closeModal('stock-alert-modal')" class="w-full py-3 bg-red-500 text-white rounded-xl font-bold">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Modal -->
+<div id="action-modal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-md" onclick="closeModal('action-modal')"></div>
+    <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center relative z-10 transform transition-all scale-100 animate-slide-up border border-slate-100">
+        <button onclick="closeModal('action-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <div id="action-icon-container" class="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center bg-green-100 text-green-600 text-3xl"></div>
+        <h3 id="action-title" class="text-2xl font-bold text-slate-800 mb-2">Success!</h3>
+        <p id="action-message" class="text-slate-600 mb-8 leading-relaxed">Operation completed successfully.</p>
+        
+        <button onclick="closeModal('action-modal')" class="w-full py-3 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-xl font-bold shadow-lg transition-all transform hover:-translate-y-1">
+            <i class="fa-solid fa-check mr-2"></i> Got It
+        </button>
+    </div>
+</div>
+
+<!-- Activity Creation Modal -->
+<div id="activity-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 modal-backdrop transition-opacity" onclick="closeModal('activity-modal')"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 animate-slide-up">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-5 border-b border-blue-600">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-plus"></i> New Activity
+                </h3>
+            </div>
+
+            <!-- Form Content -->
+            <div class="p-6 space-y-5">
+                <!-- Activity Type -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fa-solid fa-tag text-blue-500 mr-2"></i> Activity Type
+                    </label>
+                    <select id="activity-type" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">-- Select Type --</option>
+                        <option value="Team Building">Team Building</option>
+                        <option value="Training">Training</option>
+                        <option value="Meeting">Meeting</option>
+                        <option value="Event">Event</option>
+                        <option value="Workshop">Workshop</option>
+                        <option value="Conference">Conference</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Location -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fa-solid fa-map-marker-alt text-red-500 mr-2"></i> Location
+                    </label>
+                    <input type="text" id="activity-location" placeholder="Where was this activity held?" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <!-- Outcome -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fa-solid fa-bullseye text-green-500 mr-2"></i> Outcome / Notes
+                    </label>
+                    <textarea id="activity-outcome" placeholder="What were the results or key points?" rows="4" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"></textarea>
+                </div>
+
+                <!-- Activity Date Picker -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fa-solid fa-calendar text-blue-500 mr-2"></i> Activity Date
+                    </label>
+                    <input type="date" id="activity-date" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+
+                <!-- Activity Frequency -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fa-solid fa-repeat text-purple-500 mr-2"></i> Frequency
+                    </label>
+                    <select id="activity-frequency" onchange="toggleActivityFrequencyField()" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">-- Select Frequency --</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Manual Frequency Entry (Hidden by default) -->
+                <div id="manual-frequency-field" class="hidden">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fa-solid fa-keyboard text-orange-500 mr-2"></i> Enter Frequency
+                    </label>
+                    <input type="text" id="activity-frequency-custom" placeholder="e.g., Bi-weekly, Quarterly, etc." class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="bg-slate-50 px-6 py-4 flex gap-3 border-t border-slate-100">
+                <button onclick="closeModal('activity-modal')" class="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-100 transition-colors">Cancel</button>
+                <button onclick="saveActivityFromModal()" class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
+                    <i class="fa-solid fa-check mr-2"></i> Save Activity
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed bottom-4 right-4 z-[150]"></div>
+
+</body>
+</html>
