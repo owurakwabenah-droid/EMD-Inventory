@@ -1,0 +1,171 @@
+        <!-- CALCULATOR VIEW -->
+        <div id="view-calculator" class="hidden animate-fade-in">
+            <div class="space-y-6">
+                <!-- Header -->
+                <div class="flex justify-between items-center">
+                    <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-brand-500"></i> Commission Calculator
+                    </h1>
+                    <p class="text-sm text-slate-500">Calculate bonuses and commissions in real-time</p>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <div class="glass-card rounded-2xl p-2 flex gap-2 flex-wrap bg-slate-50">
+                    <button onclick="switchCalculatorTab('repurchase')" data-calc-tab="repurchase" class="calc-tab-btn flex-1 px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold transition-all shadow-md">
+                        <i class="fa-solid fa-shopping-cart mr-2"></i> Repurchase (20%)
+                    </button>
+                    <button onclick="switchCalculatorTab('referral')" data-calc-tab="referral" class="calc-tab-btn flex-1 px-6 py-3 bg-slate-200 text-slate-600 rounded-xl font-semibold hover:bg-slate-300 transition-all">
+                        <i class="fa-solid fa-users mr-2"></i> Referral (25%)
+                    </button>
+                    <button onclick="switchCalculatorTab('matching')" data-calc-tab="matching" class="calc-tab-btn flex-1 px-6 py-3 bg-slate-200 text-slate-600 rounded-xl font-semibold hover:bg-slate-300 transition-all">
+                        <i class="fa-solid fa-scale-balanced mr-2"></i> Matching (15%)
+                    </button>
+                </div>
+
+                <!-- REPURCHASE TAB -->
+                <div id="calc-tab-repurchase" class="calc-tab-content">
+                    <div class="glass-card rounded-2xl p-8 shadow-sm">
+                        <div class="max-w-2xl mx-auto">
+                            <div class="text-center mb-8">
+                                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fa-solid fa-shopping-cart text-4xl text-blue-500"></i>
+                                </div>
+                                <h2 class="text-2xl font-bold text-slate-800">Repurchase Bonus</h2>
+                                <p class="text-slate-500 mt-2">Get 20% cashback on your repurchase amount</p>
+                            </div>
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                                        <i class="fa-solid fa-dollar-sign text-blue-500 mr-2"></i>Enter Repurchase Amount (USD)
+                                    </label>
+                                    <input type="number" id="repurchase-amount" placeholder="e.g., 100" min="0" step="0.01" oninput="calculateRepurchaseBonus()" class="w-full px-6 py-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg transition-all shadow-sm" />
+                                </div>
+                                <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-8 space-y-4 min-h-48 flex flex-col justify-center">
+                                    <div class="text-center">
+                                        <p class="text-slate-600 text-sm font-semibold uppercase tracking-wide">You Will Receive</p>
+                                        <p class="text-5xl font-bold text-blue-600 my-2" id="repurchase-bonus-display">$0.00</p>
+                                        <p class="text-slate-500 text-sm">as cashback reward</p>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-blue-200">
+                                        <div class="text-center">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide">Amount Spent</p>
+                                            <p class="text-2xl font-bold text-slate-800" id="repurchase-amount-display">$0.00</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide">Bonus Rate</p>
+                                            <p class="text-2xl font-bold text-blue-600">20%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REFERRAL TAB -->
+                <div id="calc-tab-referral" class="calc-tab-content hidden">
+                    <div class="glass-card rounded-2xl p-8 shadow-sm">
+                        <div class="max-w-2xl mx-auto">
+                            <div class="text-center mb-8">
+                                <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fa-solid fa-users text-4xl text-purple-500"></i>
+                                </div>
+                                <h2 class="text-2xl font-bold text-slate-800">Referral Bonus</h2>
+                                <p class="text-slate-500 mt-2">Earn 25% from every referral you make</p>
+                            </div>
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                                        <i class="fa-solid fa-dollar-sign text-purple-500 mr-2"></i>Enter Total Referral Amount (USD)
+                                    </label>
+                                    <input type="number" id="referral-amount" placeholder="e.g., 500" min="0" step="0.01" oninput="calculateReferralBonus()" class="w-full px-6 py-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg transition-all shadow-sm" />
+                                </div>
+                                <div class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-xl p-8 space-y-4 min-h-48 flex flex-col justify-center">
+                                    <div class="text-center">
+                                        <p class="text-slate-600 text-sm font-semibold uppercase tracking-wide">Your Referral Bonus</p>
+                                        <p class="text-5xl font-bold text-purple-600 my-2" id="referral-bonus-display">$0.00</p>
+                                        <p class="text-slate-500 text-sm">earned from referrals</p>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-purple-200">
+                                        <div class="text-center">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide">Total Sales</p>
+                                            <p class="text-2xl font-bold text-slate-800" id="referral-amount-display">$0.00</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide">Commission Rate</p>
+                                            <p class="text-2xl font-bold text-purple-600">25%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MATCHING BONUS TAB -->
+                <div id="calc-tab-matching" class="calc-tab-content hidden">
+                    <div class="glass-card rounded-2xl p-8 shadow-sm">
+                        <div class="max-w-3xl mx-auto">
+                            <div class="text-center mb-8">
+                                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fa-solid fa-scale-balanced text-4xl text-green-500"></i>
+                                </div>
+                                <h2 class="text-2xl font-bold text-slate-800">Matching Bonus</h2>
+                                <p class="text-slate-500 mt-2">15% bonus based on uniform matched amounts (Minimum $20 per side)</p>
+                            </div>
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">
+                                            <i class="fa-solid fa-arrow-right text-green-500 mr-2"></i>Right Side Amount (USD)
+                                        </label>
+                                        <input type="number" id="matching-right" placeholder="Min $20" min="20" step="0.01" oninput="calculateMatchingBonus()" class="w-full px-6 py-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg transition-all shadow-sm" />
+                                        <p class="text-xs text-slate-500 mt-2">Minimum: $20</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">
+                                            <i class="fa-solid fa-arrow-left text-orange-500 mr-2"></i>Left Side Amount (USD)
+                                        </label>
+                                        <input type="number" id="matching-left" placeholder="Min $20" min="20" step="0.01" oninput="calculateMatchingBonus()" class="w-full px-6 py-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-lg transition-all shadow-sm" />
+                                        <p class="text-xs text-slate-500 mt-2">Minimum: $20</p>
+                                    </div>
+                                </div>
+                                <div class="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-8 space-y-4">
+                                    <div class="grid grid-cols-3 gap-4 mb-6">
+                                        <div class="text-center bg-white rounded-lg p-4 border border-green-200">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide font-semibold">Right Amount</p>
+                                            <p class="text-2xl font-bold text-slate-800 mt-2" id="matching-right-display">$0.00</p>
+                                        </div>
+                                        <div class="text-center bg-gradient-to-b from-green-200 to-green-100 rounded-lg p-4 border-2 border-green-400 flex items-center justify-center flex-col">
+                                            <i class="fa-solid fa-check-circle text-green-600 text-3xl mb-2"></i>
+                                            <p class="text-xs text-green-700 font-bold uppercase">Equal Match</p>
+                                        </div>
+                                        <div class="text-center bg-white rounded-lg p-4 border border-green-200">
+                                            <p class="text-xs text-slate-600 uppercase tracking-wide font-semibold">Left Amount</p>
+                                            <p class="text-2xl font-bold text-slate-800 mt-2" id="matching-left-display">$0.00</p>
+                                        </div>
+                                    </div>
+                                    <div class="border-t-2 border-green-200 pt-6">
+                                        <div class="text-center mb-6">
+                                            <p class="text-slate-600 text-sm font-semibold uppercase tracking-wide">Your Matching Bonus</p>
+                                            <p class="text-5xl font-bold text-green-600 my-2" id="matching-bonus-display">$0.00</p>
+                                            <p class="text-slate-500 text-sm">15% of matched amount</p>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-green-200">
+                                            <div class="text-center">
+                                                <p class="text-xs text-slate-600 uppercase tracking-wide">Uniform Match</p>
+                                                <p class="text-2xl font-bold text-slate-800" id="matching-uniform-display">$0.00</p>
+                                            </div>
+                                            <div class="text-center">
+                                                <p class="text-xs text-slate-600 uppercase tracking-wide">Bonus Rate</p>
+                                                <p class="text-2xl font-bold text-green-600">15%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
