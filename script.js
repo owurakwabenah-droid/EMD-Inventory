@@ -1121,6 +1121,7 @@ async function login() {
             } catch (error) {
                 console.warn('Login succeeded, but login tracking is unavailable:', error.message);
             }
+            await hydrateCloudSession(username);
         } else if (password !== users[username].password) {
             throw new Error('Invalid credentials');
         } else if (window.offlineSyncManager) {
@@ -1162,7 +1163,37 @@ async function login() {
     }
 }
 
-function completeLogin() {
+async function hydrateCloudSession(username) {
+    if (!window.supabaseManager?.isInitialized) return;
+    try {
+        const profile = await window.supabaseManager.getCurrentProfile();
+        if (profile) {
+            users[username] = {
+                ...users[username],
+                username: profile.username,
+                email: profile.email,
+                role: profile.role,
+                avatar: profile.avatar_url,
+                passwordChanged: profile.password_changed,
+                permissions: (profile.profile_permissions || []).map(permission => permission.permission_code)
+            };
+            currentRole = profile.role;
+        }
+        await window.offlineSyncManager?.flush();
+        await window.offlineSyncManager?.pullLatest();
+        inventory = JSON.parse(localStorage.getItem('emdInventory') || '[]');
+        disabledProducts = JSON.parse(localStorage.getItem('emdDisabledProducts') || '[]');
+        customers = JSON.parse(localStorage.getItem('emdCustomers') || '[]');
+        allOrders = JSON.parse(localStorage.getItem('emdOrders') || '[]');
+        sentReports = JSON.parse(localStorage.getItem('emdReports') || '[]');
+        activityLog = JSON.parse(localStorage.getItem('emdActivityLog') || '[]');
+        activitiesLog = JSON.parse(localStorage.getItem('emdActivities') || '[]');
+    } catch (error) {
+        console.warn('Cloud profile/data hydration failed; using offline data:', error.message);
+    }
+}
+
+async function completeLogin() {
     document.getElementById('login-modal').classList.add('hidden');
     document.getElementById('page-loader').classList.remove('hidden');
     
@@ -3446,7 +3477,7 @@ function animateValue(id, start, end, duration, isCurrency = false) {
 // ============================================
 // PASSWORD STRENGTH CHECKER
 // ============================================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const newPasswordInput = document.getElementById('new-password');
     if (newPasswordInput) {
         newPasswordInput.addEventListener('input', function(e) {
@@ -3480,6 +3511,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // resume session
             currentUser = savedUser;
             currentRole = users[savedUser].role;
+            await hydrateCloudSession(savedUser);
             logActivity('Session Resume', `${savedUser} session resumed after reload`);
             resetIdleTimer();
             initIdleTimer();

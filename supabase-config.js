@@ -96,6 +96,18 @@ class SupabaseManager {
         if (error) throw error;
     }
 
+    async getCurrentProfile() {
+        const user = (await this.getClient().auth.getUser()).data.user;
+        if (!user) return null;
+        const { data, error } = await this.getClient()
+            .from('profiles')
+            .select('id, username, email, role, avatar_url, password_changed, profile_permissions(permission_code)')
+            .eq('id', user.id)
+            .single();
+        if (error) throw error;
+        return data;
+    }
+
     /**
      * Test database connection
      */

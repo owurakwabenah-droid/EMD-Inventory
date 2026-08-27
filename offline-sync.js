@@ -100,6 +100,36 @@ class OfflineSyncManager {
         }
     }
 
+    async pullLatest() {
+        if (!navigator.onLine || !window.supabaseManager?.isInitialized) return false;
+        const client = window.supabaseManager.getClient();
+        const { data: authData } = await client.auth.getUser();
+        if (!authData?.user) return false;
+
+        const [productResult, customerResult, orderResult, reportResult, logResult, activityResult] = await Promise.all([
+            client.from('products').select('name, price_ghs, stock, is_disabled').order('name'),
+            client.from('customers').select('name, phone, created_at, profiles:added_by(username)').order('created_at', { ascending: false }),
+            client.from('orders').select('order_number, order_date, customer_name, destination, action_type, registration_package_name, registration_fee_ghs, subtotal_ghs, total_ghs, created_at, profiles:created_by(username), order_items(product_name, quantity, unit_price_ghs)').order('created_at', { ascending: false }),
+            client.from('reports').select('report_number, total_orders, total_revenue_ghs, created_at, sender:sent_by(username), recipient:sent_to(username)').order('created_at', { ascending: false }),
+            client.from('activity_logs').select('legacy_id, username, action, details, created_at').order('created_at', { ascending: false }).limit(100),
+            client.from('activities').select('legacy_id, activity_type, location, outcome, activity_date, frequency, icon, created_at, profiles:created_by(username)').order('created_at', { ascending: false })
+        ]);
+        [productResult, customerResult, orderResult, reportResult, logResult, activityResult].forEach(this.requireSuccess);
+
+        if (productResult.data?.length) this.originalSetItem('emdInventory', JSON.stringify(productResult.data.map(product => ({ name: product.name, price: Number(product.price_ghs), stock: product.stock }))));
+        this.originalSetItem('emdDisabledProducts', JSON.stringify((productResult.data || []).filter(product => product.is_disabled).map(product => product.name)));
+        this.originalSetItem('emdCustomers', JSON.stringify((customerResult.data || []).map(customer => ({ name: customer.name, phone: customer.phone, addedBy: customer.profiles?.username || 'Unknown', dateAdded: customer.created_at }))));
+        this.originalSetItem('emdOrders', JSON.stringify((orderResult.data || []).map(order => ({
+            id: order.order_number, date: order.order_date, timestamp: order.created_at, customer: order.customer_name, destination: order.destination,
+            actionType: order.action_type, registrationPackageName: order.registration_package_name, registrationFee: Number(order.registration_fee_ghs), subtotal: Number(order.subtotal_ghs), total: Number(order.total_ghs),
+            createdBy: order.profiles?.username || 'Unknown', items: (order.order_items || []).map(item => ({ name: item.product_name, qty: item.quantity, price: Number(item.unit_price_ghs), total: item.quantity * Number(item.unit_price_ghs) }))
+        }))));
+        this.originalSetItem('emdReports', JSON.stringify((reportResult.data || []).map(report => ({ id: report.report_number, sentBy: report.sender?.username, sentTo: report.recipient?.username, timestamp: report.created_at, totalOrders: report.total_orders, totalRevenue: Number(report.total_revenue_ghs) }))));
+        this.originalSetItem('emdActivityLog', JSON.stringify((logResult.data || []).map(log => ({ id: log.legacy_id, user: log.username, action: log.action, details: log.details, timestamp: log.created_at }))));
+        this.originalSetItem('emdActivities', JSON.stringify((activityResult.data || []).map(activity => ({ id: activity.legacy_id, type: activity.activity_type, location: activity.location, outcome: activity.outcome, date: activity.activity_date, frequency: activity.frequency, icon: activity.icon, createdBy: activity.profiles?.username || 'Unknown', createdAt: activity.created_at }))));
+        return true;
+    }
+
     async syncKey(key, authUser) {
         const client = window.supabaseManager.getClient();
         const records = this.readRecords(key);
