@@ -47,6 +47,7 @@ class SupabaseManager {
             }
 
             this.isInitialized = true;
+            window.dispatchEvent(new CustomEvent('emd:supabase-ready'));
             console.log('✅ Supabase connected successfully!');
             return this.client;
         } catch (error) {
@@ -67,7 +68,7 @@ class SupabaseManager {
 
     async signIn(username, password) {
         const client = this.getClient();
-        const email = `${username.toLowerCase()}@emd.com`;
+        const email = username.includes('@') ? username.toLowerCase() : `${username.toLowerCase()}@emd.com`;
         const { data, error } = await client.auth.signInWithPassword({ email, password });
         if (error) throw error;
         return data.user;
@@ -75,6 +76,12 @@ class SupabaseManager {
 
     async signOut() {
         if (this.isInitialized) await this.getClient().auth.signOut();
+    }
+
+    async updatePassword(password) {
+        const { data, error } = await this.getClient().auth.updateUser({ password });
+        if (error) throw error;
+        return data.user;
     }
 
     /**

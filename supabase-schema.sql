@@ -252,6 +252,7 @@ create table if not exists public.activity_logs (
 
 create table if not exists public.activities (
   id uuid primary key default gen_random_uuid(),
+  legacy_id text unique,
   activity_type text not null check (activity_type in ('Team Building', 'Training', 'Meeting', 'Event', 'Workshop', 'Conference', 'Other')),
   location text not null,
   outcome text not null,
@@ -346,10 +347,13 @@ create policy order_items_update on public.order_items for update to authenticat
 
 create policy reports_read on public.reports for select to authenticated using (sent_by = auth.uid() or sent_to = auth.uid() or public.is_main_admin());
 create policy reports_insert on public.reports for insert to authenticated with check (sent_by = auth.uid());
+create policy reports_update on public.reports for update to authenticated using (sent_by = auth.uid() or public.is_main_admin()) with check (sent_by = auth.uid() or public.is_main_admin());
 create policy logs_read on public.activity_logs for select to authenticated using (public.is_main_admin() or user_id = auth.uid());
 create policy logs_insert on public.activity_logs for insert to authenticated with check (user_id = auth.uid());
+create policy logs_update on public.activity_logs for update to authenticated using (user_id = auth.uid() or public.is_main_admin()) with check (user_id = auth.uid() or public.is_main_admin());
 create policy activities_read on public.activities for select to authenticated using (true);
 create policy activities_insert on public.activities for insert to authenticated with check (created_by = auth.uid());
+create policy activities_update on public.activities for update to authenticated using (created_by = auth.uid() or public.is_main_admin()) with check (created_by = auth.uid() or public.is_main_admin());
 create policy activities_admin_delete on public.activities for delete to authenticated using (public.is_main_admin() or created_by = auth.uid());
 
 create policy restock_access_read on public.restock_access for select to authenticated using (profile_id = auth.uid() or public.is_main_admin());
