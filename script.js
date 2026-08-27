@@ -43,6 +43,15 @@ const users = {
         avatar: null,
         email: 'afoga@emd.com',
         passwordChanged: false
+    },
+    rosemond: {
+        username: 'rosemond',
+        password: 'user123',
+        role: 'limited',
+        permissions: ['dashboard', 'new-order', 'track-orders', 'history', 'customers', 'daily-report', 'activity-log'],
+        avatar: null,
+        email: 'rosemond@emd.com',
+        passwordChanged: false
     }
 };
 
@@ -1055,7 +1064,7 @@ function handleLoginKeyPress(event) {
     }
 }
 
-function login() {
+async function login() {
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
     const loginBtn = document.getElementById('login-btn');
@@ -1082,21 +1091,20 @@ function login() {
         return;
     }
     
-    if (password !== users[username].password) {
-        showLoginError('Invalid Credentials', 'Username or password is incorrect.', ['username', 'password']);
-        logActivity('Login Failed', `Failed login attempt for ${username} - wrong password`);
-        document.getElementById('login-password').value = '';
-        return;
-    }
-    
     // Show loading state
     clearLoginError();
     loginBtn.disabled = true;
     loginBtnText.textContent = 'Logging in...';
     loginBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> <span id="login-btn-text">Logging in...</span>';
     
-    setTimeout(() => {
-        try {
+    try {
+        const supabaseAvailable = Boolean(window.supabaseManager?.isInitialized);
+        if (supabaseAvailable) {
+            await window.supabaseManager.signIn(username, password);
+        } else if (password !== users[username].password) {
+            throw new Error('Invalid credentials');
+        }
+
             currentUser = username;
             currentRole = users[username].role;
             logActivity('Login', `${username} logged in successfully`);
@@ -1121,15 +1129,15 @@ function login() {
                 completeLogin();
             }, 1500);
             
-        } catch(error) {
-            console.error('Login error:', error);
-            loginBtn.disabled = false;
-            loginBtnText.textContent = 'Login to Dashboard';
-            loginBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="login-btn-text">Login to Dashboard</span>';
-            showActionModal('error', 'Login Error', 'An error occurred during login. Please try again.');
-            logActivity('Login Error', `Error during login for ${username}: ${error.message}`);
-        }
-    }, 800);
+    } catch(error) {
+        console.error('Login error:', error);
+        loginBtn.disabled = false;
+        loginBtnText.textContent = 'Login to Dashboard';
+        loginBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span id="login-btn-text">Login to Dashboard</span>';
+        showLoginError('Invalid Credentials', 'Username or password is incorrect.', ['username', 'password']);
+        logActivity('Login Failed', `Failed login attempt for ${username}`);
+        document.getElementById('login-password').value = '';
+    }
 }
 
 function completeLogin() {
@@ -1280,6 +1288,7 @@ function logout() {
     }
     currentUser = null;
     currentRole = null;
+    if (window.supabaseManager) window.supabaseManager.signOut().catch(error => console.warn('Supabase logout failed:', error.message));
     document.getElementById('login-modal').classList.remove('hidden');
     document.getElementById('logout-modal').classList.add('hidden');
     resetLogin();
@@ -3225,7 +3234,7 @@ function exportAndDelete() {
             users.afoga.avatar = null;
             // Remove additional users
             Object.keys(users).forEach(key => {
-                if (key !== 'boison' && key !== 'afoga') {
+                if (key !== 'boison' && key !== 'afoga' && key !== 'rosemond') {
                     delete users[key];
                 }
             });
