@@ -13,12 +13,6 @@
 class EnvLoader {
     static async load() {
         try {
-            // Check if environment variables are already available (Vite, etc.)
-            if (import.meta?.env) {
-                console.log('✅ Environment loaded via build tool');
-                return;
-            }
-
             // Fallback: load from .env.local if available
             const response = await fetch('.env.local');
             if (!response.ok) {
@@ -40,6 +34,9 @@ class EnvLoader {
                 }
             }
 
+            window.EMD_SUPABASE_URL = window.env.VITE_SUPABASE_URL;
+            window.EMD_SUPABASE_ANON_KEY = window.env.VITE_SUPABASE_ANON_KEY;
+
             console.log('✅ Environment variables loaded from .env.local');
         } catch (error) {
             console.warn('⚠️ Could not load .env.local:', error.message);
@@ -47,5 +44,5 @@ class EnvLoader {
     }
 }
 
-// Load on script initialization
-EnvLoader.load();
+// Expose readiness so dependent scripts can wait for configuration values.
+window.emdEnvReady = EnvLoader.load();

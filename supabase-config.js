@@ -185,21 +185,12 @@ class SupabaseManager {
 // Create global instance
 const supabaseManager = window.supabaseManager = new SupabaseManager();
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        supabaseManager.init().then(async () => {
-            const testResult = await supabaseManager.testConnection();
-            console.log('🧪 Connection Test:', testResult);
-        }).catch(error => {
-            console.error('Failed to initialize Supabase:', error);
-        });
-    });
-} else {
+// Initialize after environment loading completes.
+(window.emdEnvReady || Promise.resolve()).then(() => {
     supabaseManager.init().then(async () => {
         const testResult = await supabaseManager.testConnection();
         console.log('🧪 Connection Test:', testResult);
     }).catch(error => {
         console.error('Failed to initialize Supabase:', error);
     });
-}
+});
