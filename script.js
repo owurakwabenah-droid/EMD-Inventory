@@ -1064,14 +1064,27 @@ function handleLoginKeyPress(event) {
     }
 }
 
+function toggleLoginPassword() {
+    const passwordInput = document.getElementById('login-password');
+    const toggleButton = document.getElementById('login-password-toggle');
+    const icon = toggleButton?.querySelector('i');
+    if (!passwordInput || !toggleButton || !icon) return;
+
+    const isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+    toggleButton.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+    toggleButton.title = isHidden ? 'Hide password' : 'Show password';
+    icon.className = `fa-solid ${isHidden ? 'fa-eye-slash' : 'fa-eye'}`;
+}
+
 async function login() {
-    const username = document.getElementById('login-username').value.trim();
+    const identifier = document.getElementById('login-username').value.trim().toLowerCase();
     const password = document.getElementById('login-password').value;
     const loginBtn = document.getElementById('login-btn');
     const loginBtnText = document.getElementById('login-btn-text');
     
     // Validation
-    if (!username) {
+    if (!identifier) {
         showLoginError('Missing Username', 'Please enter your username.', ['username']);
         document.getElementById('login-username').focus();
         return;
@@ -1083,7 +1096,9 @@ async function login() {
         return;
     }
     
-    // Check credentials
+    const username = identifier.includes('@') ? identifier.split('@')[0] : identifier;
+
+    // Check that the account is known locally before remote authentication.
     if (!users[username]) {
         showLoginError('Invalid Credentials', 'Username or password is incorrect.', ['username', 'password']);
         logActivity('Login Failed', `Failed login attempt - invalid username: ${username}`);
@@ -1211,11 +1226,12 @@ function handlePasswordChangeKeyPress(event) {
     }
 }
 
-function changePassword() {
+async function changePassword() {
     const newPassword = document.getElementById('new-password').value;
     const confirmPassword = document.getElementById('confirm-password').value;
     const changeBtn = document.getElementById('change-password-btn');
-    const username = document.getElementById('login-username').value;
+    const loginIdentifier = document.getElementById('login-username').value.trim().toLowerCase();
+    const username = loginIdentifier.includes('@') ? loginIdentifier.split('@')[0] : loginIdentifier;
     
     // Validation with inline errors
     if (!newPassword) {
@@ -1248,8 +1264,11 @@ function changePassword() {
     changeBtn.disabled = true;
     changeBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-2"></i> Updating Password...';
     
-    setTimeout(() => {
-        try {
+    try {
+        if (window.supabaseManager?.isInitialized) {
+            await window.supabaseManager.updatePassword(newPassword);
+        }
+
             users[username].password = newPassword;
             users[username].passwordChanged = true;
             saveUserData();
@@ -1269,13 +1288,12 @@ function changePassword() {
                 }, 1500);
             }, 500);
             
-        } catch(error) {
-            console.error('Password change error:', error);
-            changeBtn.disabled = false;
-            changeBtn.innerHTML = '<i class="fa-solid fa-key mr-2"></i> Update Password';
-            showActionModal('error', 'Error', 'Failed to update password. Please try again.');
-        }
-    }, 800);
+    } catch(error) {
+        console.error('Password change error:', error);
+        changeBtn.disabled = false;
+        changeBtn.innerHTML = '<i class="fa-solid fa-key mr-2"></i> Update Password';
+        showPasswordError('Password Update Failed', error.message || 'Please try again.', []);
+    }
 }
 
 function logout() {
