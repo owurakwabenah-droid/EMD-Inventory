@@ -17,7 +17,7 @@ class OfflineSyncManager {
             'emdAfogaRestockAccess'
         ]);
         this.isSyncing = false;
-        this.originalSetItem = localStorage.setItem.bind(localStorage);
+        this.originalSetItem = Storage.prototype.setItem;
     }
 
     init() {
@@ -29,11 +29,14 @@ class OfflineSyncManager {
     }
 
     patchLocalStorage() {
+        if (Storage.prototype.__emdSyncPatched) return;
         const manager = this;
-        localStorage.setItem = function(key, value) {
-            manager.originalSetItem(key, value);
+        const originalSetItem = this.originalSetItem;
+        Storage.prototype.setItem = function(key, value) {
+            originalSetItem.call(this, key, value);
             if (manager.trackedKeys.has(key)) manager.enqueue(key);
         };
+        Storage.prototype.__emdSyncPatched = true;
     }
 
     enqueue(key) {
