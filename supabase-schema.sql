@@ -250,6 +250,15 @@ create table if not exists public.activity_logs (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.login_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  identifier text not null,
+  login_method text not null default 'supabase' check (login_method in ('supabase', 'offline')),
+  user_agent text,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.activities (
   id uuid primary key default gen_random_uuid(),
   legacy_id text unique,
@@ -298,6 +307,8 @@ create index if not exists order_items_order_id_idx on public.order_items(order_
 create index if not exists order_items_product_id_idx on public.order_items(product_id);
 create index if not exists inventory_movements_product_id_idx on public.inventory_movements(product_id, created_at desc);
 create index if not exists activity_logs_created_at_idx on public.activity_logs(created_at desc);
+create index if not exists login_events_user_id_idx on public.login_events(user_id, created_at desc);
+create index if not exists login_events_created_at_idx on public.login_events(created_at desc);
 create index if not exists activities_activity_date_idx on public.activities(activity_date desc);
 create index if not exists reports_created_at_idx on public.reports(created_at desc);
 
@@ -313,6 +324,7 @@ alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.reports enable row level security;
 alter table public.activity_logs enable row level security;
+alter table public.login_events enable row level security;
 alter table public.activities enable row level security;
 alter table public.restock_access enable row level security;
 alter table public.music_tracks enable row level security;
@@ -351,6 +363,8 @@ create policy reports_update on public.reports for update to authenticated using
 create policy logs_read on public.activity_logs for select to authenticated using (public.is_main_admin() or user_id = auth.uid());
 create policy logs_insert on public.activity_logs for insert to authenticated with check (user_id = auth.uid());
 create policy logs_update on public.activity_logs for update to authenticated using (user_id = auth.uid() or public.is_main_admin()) with check (user_id = auth.uid() or public.is_main_admin());
+create policy login_events_read on public.login_events for select to authenticated using (user_id = auth.uid() or public.is_main_admin());
+create policy login_events_insert on public.login_events for insert to authenticated with check (user_id = auth.uid());
 create policy activities_read on public.activities for select to authenticated using (true);
 create policy activities_insert on public.activities for insert to authenticated with check (created_by = auth.uid());
 create policy activities_update on public.activities for update to authenticated using (created_by = auth.uid() or public.is_main_admin()) with check (created_by = auth.uid() or public.is_main_admin());

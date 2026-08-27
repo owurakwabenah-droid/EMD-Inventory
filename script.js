@@ -1116,8 +1116,15 @@ async function login() {
         const supabaseAvailable = Boolean(window.supabaseManager?.isInitialized);
         if (supabaseAvailable) {
             await window.supabaseManager.signIn(username, password);
+            try {
+                await window.supabaseManager.recordLogin(identifier);
+            } catch (error) {
+                console.warn('Login succeeded, but login tracking is unavailable:', error.message);
+            }
         } else if (password !== users[username].password) {
             throw new Error('Invalid credentials');
+        } else if (window.offlineSyncManager) {
+            window.offlineSyncManager.queueLogin(identifier);
         }
 
             currentUser = username;

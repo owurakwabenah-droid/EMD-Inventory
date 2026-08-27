@@ -12,6 +12,7 @@ class OfflineSyncManager {
             'emdReports',
             'emdActivityLog',
             'emdActivities',
+            'emdLoginEvents',
             'emdDisabledProducts',
             'emdAfogaRestockAccess'
         ]);
@@ -43,6 +44,22 @@ class OfflineSyncManager {
             if (navigator.onLine) this.flush();
         } catch (error) {
             console.warn('Could not queue offline change:', error.message);
+        }
+    }
+
+    queueLogin(identifier) {
+        try {
+            const events = JSON.parse(localStorage.getItem('emdLoginEvents') || '[]');
+            events.push({
+                identifier,
+                loginMethod: 'offline',
+                userAgent: navigator.userAgent,
+                timestamp: new Date().toISOString()
+            });
+            this.originalSetItem('emdLoginEvents', JSON.stringify(events));
+            this.enqueue('emdLoginEvents');
+        } catch (error) {
+            console.warn('Could not queue offline login:', error.message);
         }
     }
 
@@ -142,6 +159,18 @@ class OfflineSyncManager {
                 created_at: entry.timestamp || undefined
             }));
             if (rows.length) this.requireSuccess(await client.from('activity_logs').upsert(rows, { onConflict: 'legacy_id' }));
+            return;
+        }
+
+        if (key === 'emdLoginEvents') {
+            const rows = records.map(event => ({
+                user_id: authUser.id,
+                identifier: event.identifier,
+                login_method: event.loginMethod || 'offline',
+                user_agent: event.userAgent || null,
+                created_at: event.timestamp || undefined
+            }));
+            if (rows.length) this.requireSuccess(await client.from('login_events').insert(rows));
             return;
         }
 

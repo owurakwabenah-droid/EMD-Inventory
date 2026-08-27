@@ -84,6 +84,18 @@ class SupabaseManager {
         return data.user;
     }
 
+    async recordLogin(identifier, loginMethod = 'supabase') {
+        const { data: authData, error: authError } = await this.getClient().auth.getUser();
+        if (authError) throw authError;
+        const { error } = await this.getClient().from('login_events').insert({
+            user_id: authData.user.id,
+            identifier,
+            login_method: loginMethod,
+            user_agent: navigator.userAgent
+        });
+        if (error) throw error;
+    }
+
     /**
      * Test database connection
      */
