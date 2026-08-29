@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="env-loader.js" defer></script>
+    <script src="supabase-config.js" defer></script>
+    <style>
+        .test-item { animation: slideIn 0.3s ease-out forwards; }
+        .test-item:nth-child(n) { animation-delay: calc(0.1s * var(--index)); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .status-success { @apply text-green-600; }
+        .status-error { @apply text-red-600; }
+        .status-pending { @apply text-yellow-600; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-slate-800 text-white min-h-screen p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">🧪 Supabase Connection Test</h1>
+            <p class="text-slate-400">Verify your Supabase integration is working correctly</p>
+        </div>
+
+        <div class="space-y-4">
+            <!-- Test Results Container -->
+            <div id="results" class="space-y-3">
+                <!-- Tests will be injected here -->
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-8 space-y-3 pt-6 border-t border-slate-700">
+                <button onclick="runAllTests()" class="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition">
+                    🔄 Run All Tests
+                </button>
+                <button onclick="testDatabaseConnection()" class="w-full bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold transition">
+                    📊 Test Database
+                </button>
+                <button onclick="showCredentials()" class="w-full bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg font-semibold transition">
+                    🔑 Show Configuration
+                </button>
+                <button onclick="location.href='index.html'" class="w-full bg-slate-600 hover:bg-slate-700 px-6 py-3 rounded-lg font-semibold transition">
+                    ← Back to App
+                </button>
+            </div>
+
+            <!-- Debug Info -->
+            <div id="debug-info" class="mt-8 pt-6 border-t border-slate-700">
+                <h3 class="text-lg font-semibold mb-3">📋 Debug Information</h3>
+                <pre id="debug-output" class="bg-slate-800 p-4 rounded-lg text-sm overflow-auto max-h-64"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let debugLog = [];
+
+        function addDebug(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            updateDebugInfo();
+        }
+
+        function updateDebugInfo() {
+            document.getElementById('debug-output').textContent = debugLog.join('\n');
+            document.getElementById('debug-output').parentElement.parentElement.scrollTop = document.getElementById('debug-output').parentElement.scrollTop + 1000;
+        }
+
+        function addTestResult(name, status, message, index) {
+            const resultsDiv = document.getElementById('results');
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test-item';
+            testDiv.style.setProperty('--index', index);
+
+            let statusIcon = '';
+            let statusClass = '';
+            if (status === 'success') {
+                statusIcon = '✅';
+                statusClass = 'status-success';
+            } else if (status === 'error') {
+                statusIcon = '❌';
+                statusClass = 'status-error';
+            } else {
+                statusIcon = '⏳';
+                statusClass = 'status-pending';
+            }
+
+            testDiv.innerHTML = `
+                <div class="bg-slate-800 p-4 rounded-lg border-l-4 ${
+                    status === 'success' ? 'border-green-500' : 
+                    status === 'error' ? 'border-red-500' : 
+                    'border-yellow-500'
+                }">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${statusIcon}</span>
+                            <div>
+                                <p class="font-semibold">${name}</p>
+                                <p class="text-sm text-slate-400">${message}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.appendChild(testDiv);
+        }
+
+        async function runAllTests() {
+            debugLog = [];
+            document.getElementById('results').innerHTML = '';
+
+            addDebug('Starting comprehensive Supabase tests...');
+
+            // Test 1: Check if Supabase library is loaded
+            let index = 0;
+            if (window.supabase) {
+                addTestResult('Supabase Library', 'success', 'Supabase JS library loaded successfully', index++);
+                addDebug('✅ Supabase library detected');
+            } else {
+                addTestResult('Supabase Library', 'error', 'Supabase JS library not found - check CDN', index++);
+                addDebug('❌ Supabase library not loaded');
+                return;
+            }
+
+            // Test 2: Check if SupabaseManager exists
+            if (window.supabaseManager) {
+                addTestResult('SupabaseManager', 'success', 'SupabaseManager instance created', index++);
+                addDebug('✅ SupabaseManager available');
+            } else {
+                addTestResult('SupabaseManager', 'error', 'SupabaseManager not initialized', index++);
+                addDebug('❌ SupabaseManager not found');
+                return;
+            }
+
+            // Test 3: Initialization
+            addTestResult('Initialization', 'pending', 'Attempting to initialize Supabase...', index++);
+            try {
+                await supabaseManager.init();
+                document.querySelectorAll('.test-item')[index - 1].innerHTML = `
+                    <div class="bg-slate-800 p-4 rounded-lg border-l-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">✅</span>
+                                <div>
+                                    <p class="font-semibold">Initialization</p>
+                                    <p class="text-sm text-slate-400">Supabase initialized successfully</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                addDebug('✅ Supabase initialized');
+            } catch (error) {
+                document.querySelectorAll('.test-item')[index - 1].innerHTML = `
+                    <div class="bg-slate-800 p-4 rounded-lg border-l-4 border-red-500">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">❌</span>
+                                <div>
+                                    <p class="font-semibold">Initialization</p>
+                                    <p class="text-sm text-slate-400">${error.message}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                addDebug(`❌ Initialization failed: ${error.message}`);
+                return;
+            }
+            index++;
+
+            // Test 4: URL and Key validation
+            const url = supabaseManager.supabaseUrl;
+            const key = supabaseManager.supabaseAnonKey;
+            
+            if (url && key) {
+                addTestResult('Configuration', 'success', `URL: ${url.substring(0, 30)}... | Key: ${key.substring(0, 20)}...`, index++);
+                addDebug(`✅ Configuration loaded - URL: ${url}`);
+            } else {
+                addTestResult('Configuration', 'error', 'Missing URL or API Key', index++);
+                addDebug('❌ Missing configuration');
+            }
+
+            // Test 5: Connection test
+            addTestResult('Connection Test', 'pending', 'Testing database connection...', index++);
+            try {
+                const result = await supabaseManager.testConnection();
+                const statusElement = document.querySelectorAll('.test-item')[index - 1];
+                if (result.connected) {
+                    statusElement.innerHTML = `
+                        <div class="bg-slate-800 p-4 rounded-lg border-l-4 border-green-500">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">✅</span>
+                                    <div>
+                                        <p class="font-semibold">Connection Test</p>
+                                        <p class="text-sm text-slate-400">${result.message}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    addDebug(`✅ Connection successful: ${result.message}`);
+                } else {
+                    statusElement.innerHTML = `
+                        <div class="bg-slate-800 p-4 rounded-lg border-l-4 border-yellow-500">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">⚠️</span>
+                                    <div>
+                                        <p class="font-semibold">Connection Test</p>
+                                        <p class="text-sm text-slate-400">${result.message || result.error}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    addDebug(`⚠️ Connection warning: ${result.message || result.error}`);
+                }
+            } catch (error) {
+                const statusElement = document.querySelectorAll('.test-item')[index - 1];
+                statusElement.innerHTML = `
+                    <div class="bg-slate-800 p-4 rounded-lg border-l-4 border-red-500">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">❌</span>
+                                <div>
+                                    <p class="font-semibold">Connection Test</p>
+                                    <p class="text-sm text-slate-400">${error.message}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                addDebug(`❌ Connection test failed: ${error.message}`);
+            }
+
+            addDebug('All tests completed');
+        }
+
+        async function testDatabaseConnection() {
+            debugLog = [];
+            addDebug('Testing database connection...');
+
+            try {
+                const result = await supabaseManager.testConnection();
+                addDebug(`Result: ${JSON.stringify(result)}`);
+                alert('Database Test Result:\n' + JSON.stringify(result, null, 2));
+            } catch (error) {
+                addDebug(`Error: ${error.message}`);
+                alert('Database Test Failed:\n' + error.message);
+            }
+        }
+
+        function showCredentials() {
+            const config = {
+                'Supabase URL': supabaseManager.supabaseUrl,
+                'Anon Key (Public)': supabaseManager.supabaseAnonKey,
+                'Initialized': supabaseManager.isInitialized,
+                'Client Available': !!supabaseManager.client
+            };
+
+            alert('Supabase Configuration:\n\n' + JSON.stringify(config, null, 2));
+            addDebug('Credentials displayed');
+        }
+
+        // Auto-run tests on load
+        window.addEventListener('load', () => {
+            addDebug('Test page loaded, waiting 1 second before running tests...');
+            setTimeout(() => {
+                runAllTests();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
