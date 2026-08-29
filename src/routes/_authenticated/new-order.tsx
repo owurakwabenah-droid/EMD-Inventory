@@ -50,7 +50,6 @@ function NewOrderPage() {
   const [quantity, setQuantity] = useState("1");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split("T")[0]);
-  const [orderDate, setOrderDate] = useState(new Date().toISOString().split("T")[0]);
   
   const registrationPackages = [
     { name: "Starter Kit", fee: 120, commission: 40, total: 280 },

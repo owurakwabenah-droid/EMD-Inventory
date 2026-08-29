@@ -271,11 +271,6 @@
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
   }
 
-  /* Text gradient */
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent;
-  }
-
   /* Icon pulse */
   .icon-pulse {
     animation: iconPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -425,13 +420,20 @@
   /* Section headers */
   .section-header {
     @apply text-3xl font-bold mb-2;
-    @apply text-gradient;
+    @apply bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent;
   }
 
   /* Premium panels */
   .panel-premium {
-    @apply card-premium p-8;
-    @apply border-2 border-primary/10;
+    @apply relative overflow-hidden p-8 rounded-2xl border-2 border-primary/10;
+    @apply shadow-lg transition-all duration-300 bg-card;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+    backdrop-filter: blur(10px);
+  }
+
+  .panel-premium:hover {
+    @apply shadow-xl;
+    transform: translateY(-4px);
   }
 
   /* Loading skeleton */

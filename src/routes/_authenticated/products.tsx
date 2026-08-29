@@ -460,7 +460,7 @@ function Summary({ label, value }: { label: string; value: string | number }) {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
           <TrendingUp className="w-4 h-4 text-primary/50 group-hover:text-primary transition-colors" />
         </div>
-        <p className="font-display text-3xl font-bold text-gradient">{value}</p>
+        <p className="font-display text-3xl font-bold bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">{value}</p>
       </div>
     </div>
   );
