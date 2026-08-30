@@ -90,12 +90,24 @@ function NewOrderPage() {
   };
 
   const addItem = () => {
-    if (!sku || !customerType) return;
+    if (!customerType) {
+      toast.error("Please select a customer type first (Step 1)");
+      return;
+    }
+    if (!sku) {
+      toast.error("Please select a product");
+      return;
+    }
     const nextQty = Math.max(1, Number(quantity) || 1);
     const price = getProductPrice(sku);
     
     if (price <= 0) {
-      toast.error("Product price not available for selected customer type");
+      toast.error(`${sku.name} is not available for ${customerType} pricing`);
+      return;
+    }
+
+    if (nextQty > sku.stock) {
+      toast.error(`Only ${sku.stock} units available`);
       return;
     }
 
@@ -109,7 +121,8 @@ function NewOrderPage() {
       return [...current, { id: sku.id, name: sku.name, quantity: nextQty, price, type: customerType }];
     });
     setQuantity("1");
-    toast.success(`Added ${sku.name} to cart`);
+    setProductId("");
+    toast.success(`Added ${sku.name} (${nextQty} × ${money(price)}) to cart`);
   };
 
   const removeItem = (id: string) => {
@@ -179,6 +192,18 @@ function NewOrderPage() {
   };
 
   const handleConfirmOrder = () => {
+    if (!customerName.trim()) {
+      toast.error("Customer name is required");
+      return;
+    }
+    if (!destination.trim()) {
+      toast.error("Destination is required");
+      return;
+    }
+    if (cart.length === 0) {
+      toast.error("Please add items to cart");
+      return;
+    }
     saveOrderMutation.mutate();
   };
 
@@ -434,21 +459,57 @@ function NewOrderPage() {
                     <p className="text-lg text-muted-foreground">Choose items from the {customerType} product list</p>
                   </div>
 
+                  {/* Pricing Type Confirmation Card */}
+                  <div className="mb-8 rounded-xl border-2 bg-gradient-to-r p-6 transition-all duration-300" style={{
+                    borderColor: customerType === "retail" ? "rgb(59, 130, 246)" : "rgb(16, 185, 129)",
+                    background: customerType === "retail" 
+                      ? "linear-gradient(135deg, rgb(59, 130, 246, 0.05), rgb(59, 130, 246, 0.02))"
+                      : "linear-gradient(135deg, rgb(16, 185, 129, 0.05), rgb(16, 185, 129, 0.02))"
+                  }}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Pricing Type Selected</p>
+                        <p className="text-2xl font-bold capitalize flex items-center gap-2">
+                          {customerType === "retail" ? (
+                            <>
+                              <Store className="w-6 h-6 text-blue-500" />
+                              Retail Pricing
+                            </>
+                          ) : (
+                            <>
+                              <Warehouse className="w-6 h-6 text-emerald-500" />
+                              Distributor Pricing
+                            </>
+                          )}
+                        </p>
+                      </div>
+                      <Badge className={customerType === "retail" ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"}>
+                        {filteredProducts.length} products available
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-3">
+                      Only products with {customerType} pricing are shown below. Change customer type in Step 1 to see different products.
+                    </p>
+                  </div>
+
                   <div className="space-y-4 mb-6">
                     <div className="grid gap-4 md:grid-cols-3">
                       <div>
-                        <label className="mb-3 block text-sm font-semibold">Product</label>
+                        <label className="mb-3 block text-sm font-semibold">Product *</label>
                         <select
                           value={productId}
                           onChange={(e) => setProductId(e.target.value)}
                           className="h-12 w-full rounded-lg border border-input bg-background px-4 text-base transition-all duration-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
                         >
                           <option value="">Select a product</option>
-                          {filteredProducts.map((product) => (
-                            <option key={product.id} value={product.id}>
-                              {product.name}
-                            </option>
-                          ))}
+                          {filteredProducts.map((product) => {
+                            const price = getProductPrice(product);
+                            return (
+                              <option key={product.id} value={product.id}>
+                                {product.name} - {money(price)} ({product.stock} in stock)
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
                       <div>
@@ -473,14 +534,24 @@ function NewOrderPage() {
                   </div>
 
                   {sku && (
-                    <div className="mb-6 rounded-lg border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent p-4 flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold">{sku.name}</p>
-                        <p className="text-sm text-muted-foreground">Stock: {sku.stock} units available</p>
+                    <div className="mb-6 rounded-lg border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent p-6 flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="font-semibold text-lg">{sku.name}</p>
+                        <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Stock</p>
+                            <p className="font-semibold">{sku.stock} units</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Price Tier</p>
+                            <p className="font-semibold capitalize">{customerType}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Price</p>
-                        <p className="text-2xl font-bold text-primary">{money(getProductPrice(sku))}</p>
+                      <div className="text-right border-l border-primary/20 pl-6">
+                        <p className="text-xs text-muted-foreground mb-1 uppercase">Unit Price</p>
+                        <p className="text-3xl font-bold text-primary">{money(getProductPrice(sku))}</p>
+                        <p className="text-xs text-muted-foreground mt-2">× Qty for total</p>
                       </div>
                     </div>
                   )}
